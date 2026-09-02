@@ -254,6 +254,21 @@ export interface Vertical {
   sidecars?: Sidecar[];
 }
 
+/** Why the pipeline could not produce a ready instrument even though a tier was selected (spec story 10). */
+export type PipelineErrorCode = "missing_prior_tier_ref";
+
+/**
+ * A clean, typed pipeline failure. `runVertical` never throws for expected input problems — it returns
+ * this on the envelope instead (e.g. a Schedule A/B tier selected without the prior complaint reference).
+ */
+export interface PipelineError {
+  code: PipelineErrorCode;
+  /** The instrument id of the tier that could not be completed. */
+  tier: string;
+  /** Plain-language explanation for the UI. */
+  message: string;
+}
+
 /**
  * Result of the primary pipeline seam `runVertical(spec, input)` (implemented T3+). Declared here so
  * the seam's shape is fixed engine-wide and every vertical returns the same envelope. `calculation`
@@ -263,8 +278,13 @@ export interface PipelineResult {
   diagnosis: DiagnosisResult;
   calculation: CalculationResult | null;
   evidence: EvidenceItem[];
-  /** The selected ladder tier (from declared stage), or null if none applies. */
+  /** The selected ladder tier (from declared stage), or null if none applies (genuine bill / no stage match). */
   tier: Tier | null;
-  /** The instrument id of the selected tier. */
+  /** The instrument id of the selected tier; null when no tier applies OR the tier failed to resolve. */
   instrument: string | null;
+  /**
+   * Set when a tier was selected but its prerequisites were not met (see `PipelineError`). `tier` still
+   * carries the selected rung for context; `instrument` is null because the document is not ready.
+   */
+  error?: PipelineError;
 }
