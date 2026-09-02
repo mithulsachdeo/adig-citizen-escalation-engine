@@ -1,0 +1,46 @@
+{
+  "_comment": "MSEDCL LT residential tariff config for the Citizen Escalation Engine calc engine. Overcharge from slab-jump lumping is computed on `energyCharge` ONLY (wheeling is flat across slabs, so it is not distorted). Source of truth: MERC Order Case No. 75 of 2025 (final 25 Mar 2026), frozen at Architecture/Verification sources/MERC-MSEDCL-Tariff-Order-Case-75-of-2025.pdf. See tariff-config-notes.md for the design decisions (grilling 2026-09-01).",
+  "vertical": "msedcl-electricity",
+  "category": "LT-I-B-residential",
+  "computeComponent": "energyCharge",
+  "unit": "Rs/kWh",
+  "telescopic": true,
+  "source": "MERC Order Case No. 75 of 2025 (final 25 Mar 2026); revised MYT after SC-directed fresh review",
+  "coverageBoundaryFrom": "2025-07-01",
+  "coverageNote": "Periods before 2025-07-01 fall under the prior FY2024-25 order (not loaded). Flag such portions as 'outside verified tariff data', do not guess.",
+  "straddleRule": "For a consumption period crossing an effectiveFrom boundary, apply the version in force for each equivalent month the pro-rata calc spans (per-month tariff), not a single bill-date tariff.",
+  "excludedFromOvercharge": ["fixedCharge", "wheelingCharge", "fuelAdjustmentCharge", "electricityDuty", "taxOnSale"],
+  "rounding": "Match MSEDCL bill rounding (nearest rupee); cross-check against a real bill before shipping.",
+  "versions": [
+    {
+      "label": "FY2026-27",
+      "effectiveFrom": "2026-04-01",
+      "effectiveTo": "2027-03-31",
+      "confidence": "verified",
+      "fixedChargeSinglePhaseRsPerMonth": 130,
+      "fixedChargeThreePhaseRsPerMonth": 435,
+      "wheelingChargeRsPerUnit": 1.60,
+      "slabs": [
+        { "fromUnit": 1,   "toUnit": 100,  "energyCharge": 3.96,  "wheeling": 1.60, "totalVariable": 5.56 },
+        { "fromUnit": 101, "toUnit": 300,  "energyCharge": 10.80, "wheeling": 1.60, "totalVariable": 12.40 },
+        { "fromUnit": 301, "toUnit": 500,  "energyCharge": 15.03, "wheeling": 1.60, "totalVariable": 16.64 },
+        { "fromUnit": 501, "toUnit": null, "energyCharge": 17.53, "wheeling": 1.60, "totalVariable": 19.13 }
+      ]
+    },
+    {
+      "label": "FY2025-26",
+      "effectiveFrom": "2025-07-01",
+      "effectiveTo": "2026-03-31",
+      "confidence": "draft",
+      "note": "OCR-garbled in the order's two-panel (existing-vs-approved) table. Fixed 130, wheeling ~1.47. Totals appear to be ~5.74 / 12.57 / 16.85 / 19.15 but the energy-charge split is UNVERIFIED. RE-TRANSCRIBE from the MSEDCL tariff booklet or a real 2025-26 bill before any calc uses this window.",
+      "fixedChargeSinglePhaseRsPerMonth": 130,
+      "wheelingChargeRsPerUnit": 1.47,
+      "slabs": []
+    }
+  ],
+  "unsupportedCategories": {
+    "LT-I-A-BPL": "Flat Rs 1.48/unit, no slabs (FY2026-27); slab-jump math does not apply. Tool must say 'this tariff isn't supported yet'.",
+    "nonResidential_LT-II_onwards": "Out of scope for v1."
+  },
+  "referenceOnly_BPL_FY2026-27": { "fixedRsPerMonth": 35, "energyChargeRsPerUnit": 1.48, "wheeling": 0 }
+}
