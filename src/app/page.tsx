@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
+import { Footer } from "@/components/Footer";
 
 // design.md "Lightning Flow": 5 steps with fixed accents (blue/coral/yellow/pink/brand-green).
 const FLOW: { label: string; desc: string; accent: "blue" | "coral" | "yellow" | "pink" | "green" }[] = [
@@ -92,12 +93,7 @@ export default function Home() {
       </section>
 
       {/* ---- Footer / disclaimer ---- */}
-      <footer className="adig-container app-chrome" style={{ paddingBlock: "var(--space-7)", borderTop: "1px solid var(--line)", marginTop: "var(--space-6)" }}>
-        <p style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>
-          Adig is a self-help tool, not legal advice. Overcharge figures are estimates based on standard
-          pro-rata rules. We store nothing you enter.
-        </p>
-      </footer>
+      <Footer />
     </>
   );
 }

@@ -5,10 +5,14 @@ import React from "react";
 export function DocumentPreview({
   title,
   badge,
+  draft = false,
   children,
 }: {
   title: string;
   badge?: React.ReactNode;
+  /** When true, a plain-text "DRAFT" line prints inside the letter so a printed draft can't be
+   *  mistaken for a final copy — independent of the badge's color chip (addendum §4). */
+  draft?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -36,6 +40,22 @@ export function DocumentPreview({
         <span style={{ font: "var(--text-h3)", color: "var(--ink)" }}>{title}</span>
         {badge}
       </div>
+      {draft && (
+        <div
+          className="document-preview-draft-mark"
+          style={{
+            padding: "10px 24px",
+            font: "var(--text-small)",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            color: "var(--badge-draft-ink)",
+            background: "var(--badge-draft-bg)",
+            borderBottom: "1px solid var(--line)",
+          }}
+        >
+          DRAFT — confirm before sending
+        </div>
+      )}
       <div
         style={{
           padding: "24px",

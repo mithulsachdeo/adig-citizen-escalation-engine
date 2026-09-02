@@ -95,5 +95,12 @@ h3 { font: var(--text-h3); }
   @page { size: A4; margin: 20mm; }
   .document-preview h1, .document-preview h2 { page-break-after: avoid; }
   .document-preview p, .document-preview li { page-break-inside: avoid; }
+  /* Addendum §4: a printed draft must show the DRAFT WORD as plain black text, not a color chip. */
+  .document-preview-draft-mark {
+    background: #fff !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000 !important;
+    font-size: 12pt !important;
+  }
   nav, .mascot, .app-chrome, button { display: none !important; }
 }

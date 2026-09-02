@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { CheckFlow } from "./CheckFlow";
 
 // The step-by-step bill check (T7): intake → results → documents → guidance.
@@ -8,6 +9,7 @@ export default function CheckPage() {
     <>
       <Header />
       <CheckFlow />
+      <Footer />
     </>
   );
 }

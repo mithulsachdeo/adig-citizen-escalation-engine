@@ -141,6 +141,7 @@ export function DocumentsStep({
             <DocumentPreview
               title={assembled.title}
               badge={<Badge variant={assembled.confidence} />}
+              draft={assembled.confidence === "draft"}
             >
               {assembled.body}
             </DocumentPreview>

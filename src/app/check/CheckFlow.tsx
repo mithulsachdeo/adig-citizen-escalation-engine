@@ -27,6 +27,7 @@ import { GuidanceStep } from "./GuidanceStep";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { t } from "@/i18n";
+import { analytics } from "@/lib/analytics";
 
 // Orchestrator for the intake → results → documents → guidance flow (T7). Owns all state; the pure
 // engine (runVertical / assembleInstrument) is called client-side, and the only impure call — the
@@ -124,6 +125,22 @@ export function CheckFlow() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [screen]);
 
+  // Zero-PII analytics for the later stages. instrument_generated fires once per assembled tier;
+  // guidance_viewed fires when the submit screen is shown. Both carry only the instrument id.
+  const instrumentFired = useRef<string | null>(null);
+  useEffect(() => {
+    if (screen === "documents" && assembled && instrumentFired.current !== assembled.instrument) {
+      instrumentFired.current = assembled.instrument;
+      analytics.instrumentGenerated(assembled.instrument);
+    }
+  }, [screen, assembled]);
+
+  useEffect(() => {
+    if (screen === "guidance") {
+      analytics.guidanceViewed(result.tier?.instrument ?? "none");
+    }
+  }, [screen, result.tier?.instrument]);
+
   // Mount-only: pick up any saved progress and offer it. Marks bootstrap complete so the save effect
   // below never fires before this has run (which would clobber the saved blob with the empty form).
   useEffect(() => {
@@ -157,7 +174,12 @@ export function CheckFlow() {
   function submitIntake() {
     const found = validateIntake(form);
     setErrors(found);
-    if (Object.keys(found).length === 0) setScreen("results");
+    if (Object.keys(found).length === 0) {
+      // Zero-PII analytics: the diagnosis just ran; report the outcome as a bucketed range only.
+      analytics.diagnosisStarted();
+      analytics.overchargeCalculated(result.calculation?.overcharge ?? 0, result.diagnosis.isActionable);
+      setScreen("results");
+    }
   }
 
   function restart() {
