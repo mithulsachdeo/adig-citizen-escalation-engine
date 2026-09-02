@@ -56,6 +56,32 @@ h3 { font: var(--text-h3); }
   .adig-container { max-width: 760px; padding-inline: var(--space-5); }
 }
 
+/* ---- T7 flow helpers ---- */
+/* Stacked form / step body with consistent rhythm. */
+.adig-stack { display: flex; flex-direction: column; gap: var(--space-5); }
+.adig-stack-sm { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* Addendum §2/§3: primary CTA sticks to the bottom of the viewport on mobile (thumb reach),
+   returns to inline flow on wider screens. Sits above a safe-area inset on notched phones. */
+.adig-sticky-cta {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  margin-top: var(--space-5);
+  background: linear-gradient(to top, var(--canvas) 72%, transparent);
+  z-index: 5;
+}
+@media (min-width: 768px) {
+  .adig-sticky-cta {
+    position: static;
+    padding-bottom: var(--space-4);
+    background: transparent;
+  }
+}
+
 /* ---- Addendum §4: print stylesheet for DocumentPreview ---- */
 @media print {
   body * { visibility: hidden; }
