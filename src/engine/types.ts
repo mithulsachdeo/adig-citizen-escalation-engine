@@ -116,6 +116,12 @@ export interface CalculationResult {
   monthsInPeriod?: number;
   /** True if part of the period predates the tariff coverage boundary and was not computed. */
   outsideVerifiedTariff?: boolean;
+  /**
+   * True when the consumer category is out of scope (BPL / non-residential): the engine returns
+   * zeros and does NOT compute an overcharge (spec D-notes decision 4 — "fail honestly"). The UI
+   * (T7) branches on this to show "this tariff isn't supported yet" instead of a figure.
+   */
+  unsupported?: boolean;
 }
 
 // ----- Function slots on the vertical spec (implemented in T3/T4) -----

@@ -22,8 +22,8 @@ import type {
   IntakeField,
   EvidenceItem,
   DiagnoseFn,
-  CalculateFn,
 } from "../../types";
+import { calculate } from "./calculate"; // T3: pro-rata overcharge engine
 
 // ----- Intake fields (spec story 1; rates are NOT asked — spec D12) -----
 
@@ -177,11 +177,7 @@ const rtiSidecar: Sidecar = {
 // ----- Function slots — stubs until T3/T4 -----
 
 const diagnose: DiagnoseFn = () => {
-  throw new Error("msedcl-electricity: diagnose not implemented (T3)");
-};
-
-const calculate: CalculateFn = () => {
-  throw new Error("msedcl-electricity: calculate not implemented (T4)");
+  throw new Error("msedcl-electricity: diagnose not implemented");
 };
 
 export const msedclElectricitySpec: Vertical = {
