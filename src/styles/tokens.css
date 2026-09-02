@@ -1,0 +1,94 @@
+/* Adig design tokens — imported verbatim from `claude design/tokens/` (design.md),
+   with the addendum additions folded in (Badge, focus ring, breakpoints).
+   Font FAMILIES are injected by next/font in layout.tsx as --font-latin / --font-devanagari;
+   we only reference them here. */
+
+:root {
+  /* ---- Canvas — warm cream paper, never stark white ---- */
+  --canvas: #f7fbed;
+  --canvas-raised: oklch(99% 0.008 80);
+  --canvas-sunken: oklch(94.5% 0.018 78);
+
+  /* ---- Ink — warm near-black, never pure #000 ---- */
+  --ink: #2c2e2a;
+  --ink-soft: oklch(38% 0.01 130);
+  --ink-faint: oklch(62% 0.008 110);
+  --line: oklch(88% 0.015 90);
+
+  /* ---- Brand structural accent ---- */
+  --brand-green: #8ed462;
+  --brand-green-ink: oklch(38% 0.09 135);
+  --brand-green-wash: oklch(94% 0.05 132);
+  --canvas-hero: var(--brand-green);
+
+  /* ---- Decorative accents — illustration + small circular affordances only ---- */
+  --color-red-500: #ff705d;
+  --color-red-600: #ff5c46;
+  --color-yellow-500: #f5e211;
+  --color-yellow-600: #f9d314;
+  --color-blue-500: #2ba0ff;
+  --color-blue-600: #2093ff;
+  --color-pink-500: #ebc1ff;
+  --color-pink-600: #f4acff;
+
+  --accent-blue: var(--color-blue-500);
+  --accent-coral: var(--color-red-500);
+  --accent-yellow: var(--color-yellow-500);
+  --accent-pink: var(--color-pink-500);
+
+  /* ---- Severity — used sparingly for the overcharge diagnosis, not decoratively ---- */
+  --severity-low: var(--brand-green-ink);
+  --severity-mid: oklch(68% 0.14 55);
+  --severity-high: oklch(56% 0.17 25);
+  --severity-high-wash: oklch(94% 0.04 25);
+
+  --white: #ffffff;
+
+  /* ---- Spacing (8px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ---- Sticker-soft radii ---- */
+  --radius-sm: 16px;
+  --radius-md: 28px;
+  --radius-lg: 50px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 2px 0 var(--line);
+  --shadow-raised: 0 12px 32px -12px oklch(30% 0.02 100 / 0.18);
+
+  /* ---- Type — families come from next/font; scale from design.md ---- */
+  --font-body: var(--font-latin), "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+
+  --text-display: 700 clamp(2.75rem, 6vw, 5.5rem)/0.98 var(--font-body);
+  --display-tracking: -0.02em;
+  --text-h1: 700 clamp(2rem, 3.4vw, 3rem)/1.06 var(--font-body);
+  --text-h2: 700 1.75rem/1.15 var(--font-body);
+  --text-h3: 600 1.25rem/1.25 var(--font-body);
+  --text-lead: 500 1.25rem/1.5 var(--font-body);
+  --text-body: 400 1.0625rem/1.6 var(--font-body);
+  --text-small: 500 0.875rem/1.5 var(--font-body);
+  --text-mono: 500 0.8125rem/1.5 "SF Mono", "IBM Plex Mono", monospace;
+
+  /* ---- Addendum §1 — Verified / Draft badge tokens ---- */
+  --badge-verified-bg: var(--brand-green-wash);
+  --badge-verified-ink: var(--brand-green-ink);
+  --badge-draft-bg: oklch(93% 0.05 55);
+  --badge-draft-ink: var(--severity-mid);
+
+  /* ---- Addendum §2 — focus ring ---- */
+  --focus-ring: 3px solid var(--accent-blue);
+  --focus-offset: 3px;
+
+  /* ---- Addendum §3 — mobile-first breakpoints (reference values) ---- */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+}

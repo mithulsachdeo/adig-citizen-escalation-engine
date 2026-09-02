@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
+  <title id="title">Adig one-colour monogram</title>
+  <desc id="desc">Adig brand logo vector asset. Flat geometric A with a lightning-bolt right leg.</desc>
+  <style>:root{color:#2c2e2a} svg{color:#2c2e2a}</style>
+  
+<g id="adig-mark">
+  <path fill="currentColor" d="M43 196 L92 42 Q95 30 107 30 H143 L91 196 Q88 206 77 206 H49 Q38 206 43 196Z"/>
+  <path fill="currentColor" d="M91 132 H144 L164 164 H78 Z"/>
+  <path fill="currentColor" d="M151 43 Q155 30 163 38 L178 82 L195 74 Q207 69 205 82 L213 188 Q214 202 204 204 Q198 205 194 196 L172 153 L151 161 Q142 165 139 155 L128 119 Q126 113 131 106 Z"/>
+</g>
+
+</svg>

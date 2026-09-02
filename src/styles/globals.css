@@ -1,0 +1,73 @@
+@import "./tokens.css";
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font: var(--text-body);
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  /* Addendum §3: body never sets its own horizontal scroll */
+  overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+a { color: inherit; }
+
+/* ---- Type scale helpers ---- */
+h1 { font: var(--text-h1); letter-spacing: -0.01em; }
+h2 { font: var(--text-h2); letter-spacing: -0.01em; }
+h3 { font: var(--text-h3); }
+
+/* ---- Addendum §2: visible focus on every interactive element ---- */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* ---- Animation: fade-up on load, respects reduced motion (design.md) ---- */
+@keyframes adig-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.adig-fade-up { animation: adig-fade-up 0.4s ease both; }
+
+/* sticker-lift hover (design.md micro-interactions) */
+.adig-sticker-lift { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.adig-sticker-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-raised); }
+
+@media (prefers-reduced-motion: reduce) {
+  .adig-fade-up { animation: none; }
+  .adig-sticker-lift { transition: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* ---- Layout helper ---- */
+.adig-container {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+@media (min-width: 768px) {
+  .adig-container { max-width: 760px; padding-inline: var(--space-5); }
+}
+
+/* ---- Addendum §4: print stylesheet for DocumentPreview ---- */
+@media print {
+  body * { visibility: hidden; }
+  .document-preview, .document-preview * { visibility: visible; }
+  .document-preview {
+    position: absolute; inset: 0; margin: 0;
+    background: #fff; color: #000;
+    border: none; border-radius: 0;
+    font-size: 12pt; line-height: 1.5;
+  }
+  @page { size: A4; margin: 20mm; }
+  .document-preview h1, .document-preview h2 { page-break-after: avoid; }
+  .document-preview p, .document-preview li { page-break-inside: avoid; }
+  nav, .mascot, .app-chrome, button { display: none !important; }
+}
