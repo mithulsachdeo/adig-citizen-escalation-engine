@@ -19,10 +19,14 @@ import {
   type Screen,
 } from "./state";
 import { formatBillPeriod, formatDateLong, todayISO } from "./format";
+import { loadProgress, saveProgress, clearProgress } from "./storage";
 import { IntakeStep } from "./IntakeStep";
 import { ResultsStep } from "./ResultsStep";
 import { DocumentsStep } from "./DocumentsStep";
 import { GuidanceStep } from "./GuidanceStep";
+import { Alert } from "@/components/Alert";
+import { Button } from "@/components/Button";
+import { t } from "@/i18n";
 
 // Orchestrator for the intake → results → documents → guidance flow (T7). Owns all state; the pure
 // engine (runVertical / assembleInstrument) is called client-side, and the only impure call — the
@@ -42,6 +46,12 @@ export function CheckFlow() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [stage, setStage] = useState<string>("new");
   const [priorRef, setPriorRef] = useState<PriorRefState>(EMPTY_PRIOR_REF);
+
+  // Optional device-local resume (store-nothing on server). We load any saved progress AFTER mount
+  // (never during render — avoids an SSR/hydration mismatch) and offer it as an opt-in banner rather
+  // than silently overwriting the fresh form. Auto-save is gated until the citizen resolves the banner.
+  const [resumable, setResumable] = useState<ReturnType<typeof loadProgress>>(null);
+  const bootstrapped = useRef(false);
 
   const [narrative, setNarrative] = useState<string | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
@@ -114,6 +124,36 @@ export function CheckFlow() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [screen]);
 
+  // Mount-only: pick up any saved progress and offer it. Marks bootstrap complete so the save effect
+  // below never fires before this has run (which would clobber the saved blob with the empty form).
+  useEffect(() => {
+    const saved = loadProgress();
+    if (saved) setResumable(saved);
+    bootstrapped.current = true;
+  }, []);
+
+  // Persist progress to this device as the citizen works. Held off until (a) the mount load ran and
+  // (b) the resume banner is resolved, and only once there is something worth saving.
+  const worthSaving = screen !== "intake" || form.unitsBilled.trim() !== "" || form.periodFrom !== "";
+  useEffect(() => {
+    if (!bootstrapped.current || resumable || !worthSaving) return;
+    saveProgress({ form, stage, priorRef, screen });
+  }, [form, stage, priorRef, screen, resumable, worthSaving]);
+
+  function applyResume() {
+    if (!resumable) return;
+    setForm(resumable.form);
+    setStage(resumable.stage);
+    setPriorRef(resumable.priorRef);
+    setScreen(resumable.screen);
+    setResumable(null);
+  }
+
+  function dismissResume() {
+    clearProgress();
+    setResumable(null);
+  }
+
   function submitIntake() {
     const found = validateIntake(form);
     setErrors(found);
@@ -121,6 +161,8 @@ export function CheckFlow() {
   }
 
   function restart() {
+    clearProgress();
+    setResumable(null);
     setForm(EMPTY_FORM);
     setErrors({});
     setStage("new");
@@ -138,6 +180,22 @@ export function CheckFlow() {
       </div>
 
       <h1 style={{ font: "var(--text-h1)", marginBottom: "var(--space-5)" }}>{SCREEN_TITLE[screen]}</h1>
+
+      {resumable && (
+        <div style={{ marginBottom: "var(--space-5)" }}>
+          <Alert tone="info" title={t("resume.title")}>
+            <p style={{ marginBottom: "var(--space-3)" }}>{t("resume.body")}</p>
+            <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <Button variant="primary" onClick={applyResume}>
+                {t("resume.resume")}
+              </Button>
+              <Button variant="secondary" onClick={dismissResume}>
+                {t("resume.startFresh")}
+              </Button>
+            </div>
+          </Alert>
+        </div>
+      )}
 
       {screen === "intake" && (
         <IntakeStep form={form} setField={setField} errors={errors} onSubmit={submitIntake} />
@@ -171,6 +229,7 @@ export function CheckFlow() {
       {screen === "guidance" && (
         <GuidanceStep
           result={result}
+          circle={input.circle}
           rtiSidecar={rtiSidecar}
           onBack={() => setScreen("documents")}
           onRestart={restart}

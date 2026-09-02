@@ -5,9 +5,10 @@
 // plus RTI as an evidence sidecar (NOT a rung — spec D15). `diagnose`/`calculate` are stubs that
 // throw until T3/T4 implement them, so the module compiles and the ladder data is testable now.
 //
-// SCOPE (T2): ladder `legalGrounds` / `routing` / `tierTemplate` are minimal placeholders with the
-// CORRECT `confidence` flags — T5 (routing) and T8 (instruments) fill the verbatim legal content from
-// the Primary-source verification pass. Do not invent citations here.
+// SCOPE: `routing` is now filled from the verbatim routing module (../../routing, T8). `legalGrounds`
+// stays `[]` here on purpose — the verbatim citations live on the instrument templates (T5,
+// @/engine/instruments), which the UI resolves by instrument id; the ladder does not duplicate them.
+// `tierTemplate` keeps its minimal T2 title/disclaimer for the same reason. Do not invent citations here.
 //
 // Confidence flags (from "Primary-source verification pass"):
 //   ICRS mechanics/timelines ...... verified
@@ -24,6 +25,12 @@ import type {
 } from "../../types";
 import { calculate } from "./calculate"; // T3: pro-rata overcharge engine
 import { diagnose } from "./diagnose"; // T4: classification (slab-jump / average-billing / smart-meter / legitimate)
+import {
+  ICRS_ROUTING,
+  CGRF_GENERIC_ROUTING,
+  OMBUDSMAN_MUMBAI_ROUTING,
+  RTI_ROUTING,
+} from "../../routing"; // T8: verbatim routing (circle-specific CGRF resolved at render via getTierRouting)
 
 // ----- Intake fields (spec story 1; rates are NOT asked — spec D12) -----
 
@@ -107,13 +114,8 @@ const icrs: Tier = {
   tierTemplate: {
     en: { title: "Internal complaint to MSEDCL (ICRS)", disclaimer: SELF_HELP_DISCLAIMER },
   },
-  legalGrounds: [], // TODO(T8): fill verbatim from verification file
-  routing: {
-    forumName: "MSEDCL division office (ICRS)",
-    channel: "wss.mahadiscom.in/ICRS/ (or 1912 / division office)",
-    slaText: "Resolution within 15 working days for billing complaints.",
-    verifyAtSource: true, // confirm live ICRS URL/flow
-  },
+  legalGrounds: [], // legal grounds live on the instrument templates (T5); routing is the T8 concern here
+  routing: ICRS_ROUTING,
 };
 
 const cgrfScheduleA: Tier = {
@@ -126,13 +128,10 @@ const cgrfScheduleA: Tier = {
   tierTemplate: {
     en: { title: "Application to Forum for Redressal of Grievance (Schedule A)", disclaimer: SELF_HELP_DISCLAIMER },
   },
-  legalGrounds: [], // TODO(T8)
-  routing: {
-    forumName: "Consumer Grievance Redressal Forum, MSEDCL",
-    channel: "in person / post / email / web",
-    slaText: "File within 2 years of cause of action; order within 60 working days.",
-    verifyAtSource: true, // CGRF contact volatile; read live MSEDCL CGRF list (spec D18)
-  },
+  legalGrounds: [],
+  // Circle-agnostic default; GuidanceStep resolves the jurisdictional CGRF (Pune / Baramati) from the
+  // citizen's circle via getTierRouting. An unknown circle keeps this generic routing (never a guess).
+  routing: CGRF_GENERIC_ROUTING,
 };
 
 const ombudsmanScheduleB: Tier = {
@@ -145,13 +144,8 @@ const ombudsmanScheduleB: Tier = {
   tierTemplate: {
     en: { title: "Representation before the Electricity Ombudsman (Schedule B)", disclaimer: SELF_HELP_DISCLAIMER },
   },
-  legalGrounds: [], // TODO(T8)
-  routing: {
-    forumName: "Electricity Ombudsman (Mumbai)",
-    channel: "post / in person (enclose 3 copies of documents)",
-    slaText: "Represent within 60 days of the CGRF order.",
-    verifyAtSource: true, // re-confirm Ombudsman postal address
-  },
+  legalGrounds: [],
+  routing: OMBUDSMAN_MUMBAI_ROUTING,
 };
 
 const escalationLadder: Tier[] = [icrs, cgrfScheduleA, ombudsmanScheduleB];
@@ -166,12 +160,8 @@ const rtiSidecar: Sidecar = {
   tierTemplate: {
     en: { title: "Application under the Right to Information Act, 2005", disclaimer: SELF_HELP_DISCLAIMER },
   },
-  legalGrounds: [], // TODO(T8)
-  routing: {
-    forumName: "PIO of the consumer's own sub-division / division (office named on the bill)",
-    channel: "post / in person to the division PIO",
-    verifyAtSource: true,
-  },
+  legalGrounds: [],
+  routing: RTI_ROUTING,
 };
 
 // ----- Function slots — diagnose (T4) + calculate (T3) are now the real implementations -----
