@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "@/styles/globals.css";
 import { IntroCurtain } from "@/components/IntroCurtain";
+import { LanguageProvider } from "@/i18n/context";
+import { BetaBanner } from "@/components/BetaBanner";
 
 // design.md: single Latin typeface Inter; Noto Sans Devanagari carries Marathi (addendum §5).
 const inter = Inter({
@@ -48,7 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <style>{`.adig-intro{display:none!important}`}</style>
         </noscript>
         <IntroCurtain />
-        {children}
+        <LanguageProvider>
+          <BetaBanner />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -45,6 +45,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
     return {
       classification: CLASSIFICATION.UNSUPPORTED,
       isActionable: false,
+      messageKey: "unsupported",
       summary: "This tool does not support your tariff category yet, so it cannot check this bill.",
       rationale:
         "The pro-rata overbilling check currently covers residential (LT-I-B) connections only. " +
@@ -64,6 +65,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
       return {
         classification: CLASSIFICATION.SMART_METER_CATCH_UP,
         isActionable: true,
+        messageKey: "smartCatchUp",
         summary: "Your new meter appears to have billed accumulated units in one go (a catch-up bill).",
         rationale:
           "After a recent meter replacement, units that built up before the swap look like they were " +
@@ -74,6 +76,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
     return {
       classification: CLASSIFICATION.LEGITIMATE,
       isActionable: false,
+      messageKey: "smartGenuine",
       summary: "This looks like a genuine bill from your new meter, not a catch-up overcharge.",
       rationale:
         "Even spread across the billing months, the energy charge does not fall — so the new meter's " +
@@ -90,6 +93,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
         return {
           classification: CLASSIFICATION.AVERAGE_BILLING,
           isActionable: true,
+          messageKey: "averageBilling",
           summary: "Your bill was raised on an estimated/average reading, which has overcharged the energy component.",
           rationale:
             "Because the reading was estimated rather than actual, accumulated units were billed together " +
@@ -100,6 +104,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
       return {
         classification: CLASSIFICATION.SLAB_JUMP,
         isActionable: true,
+        messageKey: "slabJump",
         summary: "Units from several months appear billed in one cycle, pushing you into higher slabs (slab-jump).",
         rationale:
           "The billing period spans more than one cycle, so lumped units cross into higher telescopic slabs. " +
@@ -112,6 +117,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
     return {
       classification: CLASSIFICATION.LEGITIMATE,
       isActionable: false,
+      messageKey: "accumNoBenefit",
       summary: "Even spread across the billing months, this bill does not show a slab-jump overcharge.",
       rationale:
         "Pricing the units month-by-month gives the same energy charge as billed, so there is no " +
@@ -123,6 +129,7 @@ export const diagnose: DiagnoseFn = (input: UserInput): DiagnosisResult => {
   return {
     classification: CLASSIFICATION.LEGITIMATE,
     isActionable: false,
+    messageKey: "normal",
     summary: "This looks like a normal, single-cycle bill on an actual meter reading.",
     rationale:
       "A roughly one-month period read from the meter has no accumulation to unwind — a high amount here " +

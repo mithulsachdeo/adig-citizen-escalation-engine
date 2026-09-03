@@ -10,17 +10,12 @@ import { SelectField, TextareaField } from "./fields";
 import type { PipelineResult } from "@/engine/types";
 import type { AssembledInstrument } from "@/engine/instruments";
 import type { PriorRefState } from "./state";
+import { useT, useLanguage } from "@/i18n/context";
 
 // Documents screen (spec D15/D16, story 10–12). A declared-stage selector picks the ladder rung;
 // Schedule A / B rungs additionally need the prior-tier reference. The letter body is composed from
 // the deterministic template + the caged narrative (fetched in the parent, with an offline fallback),
 // and rendered in the DocumentPreview with the correct verified/draft badge. Download + copy provided.
-
-const STAGE_OPTIONS = [
-  { value: "new", label: "I just got the bill" },
-  { value: "icrs_ignored", label: "MSEDCL (ICRS) did not resolve it" },
-  { value: "cgrf_rejected", label: "CGRF rejected it / did not decide" },
-];
 
 export function DocumentsStep({
   result,
@@ -47,8 +42,16 @@ export function DocumentsStep({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const t = useT();
+  const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
   const needsPriorRef = result.error?.code === "missing_prior_tier_ref";
+
+  const stageOptions = [
+    { value: "new", label: t("documents.stageNew") },
+    { value: "icrs_ignored", label: t("documents.stageIcrs") },
+    { value: "cgrf_rejected", label: t("documents.stageCgrf") },
+  ];
 
   // Copy + download the SUBMISSION version — the filed letter without the citizen-facing self-help
   // disclaimer or estimate caveat (those stay on-screen only). See assembleInstrument.bodyForSubmission.
@@ -78,51 +81,52 @@ export function DocumentsStep({
 
   return (
     <div className="adig-stack">
-      <Card eyebrow="Document" title="Generate your escalation letter" accent="pink">
-        <p>
-          Tell us where you are stuck and we&rsquo;ll assemble the correct instrument for that stage —
-          the legal grounds and forum are fixed and checked against the regulations; only your own
-          facts are filled in.
-        </p>
+      <Card eyebrow={t("documents.eyebrow")} title={t("documents.title")} accent="pink">
+        <p>{t("documents.intro")}</p>
       </Card>
 
+      {/* In Marathi mode, state that the generated instrument itself stays English (the forums accept it). */}
+      {lang === "mr" && (
+        <Alert tone="info" title={t("guidance.englishDocNote")}>{" "}</Alert>
+      )}
+
       <SelectField
-        label="Where are you stuck?"
+        label={t("documents.stageLabel")}
         value={stage}
         onChange={setStage}
-        options={STAGE_OPTIONS}
-        help="This selects the next document in the escalation ladder."
-        placeholder="I just got the bill"
+        options={stageOptions}
+        help={t("documents.stageHelp")}
+        placeholder={t("documents.stageNew")}
       />
 
       {/* Optional free-text account → the caged narrative (any language; nothing legal derived from it). */}
       <TextareaField
-        label="In your own words (optional)"
+        label={t("documents.descLabel")}
         value={description}
         onChange={setDescription}
-        placeholder="Briefly describe what happened — when the bill arrived, how it compares with your usual bills, why you think it's wrong. Any language is fine."
-        help="We use this only to write the plain 'statement of facts' paragraph. It never changes the legal wording."
+        placeholder={t("documents.descPlaceholder")}
+        help={t("documents.descHelp")}
       />
 
       {/* Schedule A / B rungs must cite the prior tier (spec story 10). */}
       {needsPriorRef && (
-        <Card eyebrow="One more thing" title="Reference to the previous stage" accent="blue">
+        <Card eyebrow={t("documents.priorEyebrow")} title={t("documents.priorTitle")} accent="blue">
           <p style={{ marginBottom: "var(--space-4)" }}>{result.error?.message}</p>
           <div className="adig-stack-sm">
             <Input
-              label="Complaint / order reference number"
+              label={t("documents.priorRefNo")}
               required
               value={priorRef.referenceNo}
               onChange={(e) => setPriorRef({ ...priorRef, referenceNo: e.target.value })}
             />
             <Input
-              label="Date of that complaint / order"
+              label={t("documents.priorDate")}
               type="date"
               value={priorRef.date}
               onChange={(e) => setPriorRef({ ...priorRef, date: e.target.value })}
             />
             <Input
-              label="What happened (e.g. no response, rejected)"
+              label={t("documents.priorOutcome")}
               value={priorRef.outcome}
               onChange={(e) => setPriorRef({ ...priorRef, outcome: e.target.value })}
             />
@@ -133,10 +137,8 @@ export function DocumentsStep({
       {/* The assembled letter. */}
       {!needsPriorRef &&
         (narrativeLoading || !assembled ? (
-          <Card title="Preparing your document…" accent="pink">
-            <p style={{ color: "var(--ink-faint)" }}>
-              Writing the statement-of-facts paragraph and assembling the letter.
-            </p>
+          <Card title={t("documents.preparingTitle")} accent="pink">
+            <p style={{ color: "var(--ink-faint)" }}>{t("documents.preparingBody")}</p>
           </Card>
         ) : (
           <>
@@ -151,21 +153,20 @@ export function DocumentsStep({
             <div className="adig-stack-sm">
               <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
                 <Button variant="secondary" onClick={download}>
-                  Download (.txt)
+                  {t("documents.download")}
                 </Button>
                 <Button variant="secondary" onClick={copy}>
-                  {copied ? "Copied ✓" : "Copy text"}
+                  {copied ? t("documents.copied") : t("documents.copy")}
                 </Button>
               </div>
               <p role="status" aria-live="polite" style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>
-                {copied ? "Letter copied to your clipboard." : " "}
+                {copied ? t("documents.copiedStatus") :" "}
               </p>
             </div>
 
             {assembled.confidence === "draft" && (
-              <Alert tone="warning" title="Draft — confirm before sending">
-                Some details in this document are not yet primary-source confirmed. Review every
-                figure and the current forum contact before you send it.
+              <Alert tone="warning" title={t("documents.draftTitle")}>
+                {t("documents.draftBody")}
               </Alert>
             )}
           </>
@@ -173,7 +174,7 @@ export function DocumentsStep({
 
       <div className="adig-sticky-cta">
         <Button variant="secondary" onClick={onBack}>
-          Back
+          {t("common.back")}
         </Button>
         <Button
           variant="primary"
@@ -181,7 +182,7 @@ export function DocumentsStep({
           onClick={onNext}
           disabled={needsPriorRef || !assembled}
         >
-          Where do I send it?
+          {t("documents.next")}
         </Button>
       </div>
     </div>

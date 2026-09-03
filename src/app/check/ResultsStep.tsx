@@ -8,19 +8,12 @@ import { CostBreakdown } from "@/components/CostBreakdown";
 import { Mascot, type MascotExpression, type MascotReaction } from "@/components/Mascot";
 import type { CalculationResult, PipelineResult, SlabCharge } from "@/engine/types";
 import { inr } from "./format";
+import { useT, useLanguage } from "@/i18n/context";
 
 // Results screen (spec stories 4–7). Order (revised): the screen is titled "What we found", so it
 // LEADS with the diagnosis (the finding), then the disconnection reassurance immediately after (fear
 // is still addressed in the first screenful — spec D17), then the estimate WITH the full slab-by-slab
 // working (trust), then the evidence checklist.
-
-const DIAGNOSIS_TITLE: Record<string, string> = {
-  slab_jump: "Slab-jump overcharge detected",
-  average_billing: "Estimated / average-billing overcharge detected",
-  smart_meter_catch_up: "Meter catch-up overcharge detected",
-  legitimate: "This bill looks genuine",
-  unsupported: "Not supported yet",
-};
 
 function bandLabel(s: SlabCharge): string {
   return s.toUnit === null ? `${s.fromUnit}+` : `${s.fromUnit}–${s.toUnit}`;
@@ -42,16 +35,17 @@ const headCell: React.CSSProperties = {
 };
 
 function SlabTable({ title, rows, subtotal }: { title: string; rows: SlabCharge[]; subtotal: number }) {
+  const t = useT();
   return (
     <div>
       <p style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>{title}</p>
       <table style={{ width: "100%", borderCollapse: "collapse", font: "var(--text-small)", color: "var(--ink-soft)" }}>
         <thead>
           <tr style={{ borderBottom: "1px solid var(--line)" }}>
-            <th style={{ ...cellLabel, ...headCell }}>Slab (units)</th>
-            <th style={{ ...cellNum, ...headCell }}>Units</th>
-            <th style={{ ...cellNum, ...headCell }}>₹/unit</th>
-            <th style={{ ...cellNum, ...headCell }}>Charge</th>
+            <th style={{ ...cellLabel, ...headCell }}>{t("results.slabHeadSlab")}</th>
+            <th style={{ ...cellNum, ...headCell }}>{t("results.slabHeadUnits")}</th>
+            <th style={{ ...cellNum, ...headCell }}>{t("results.slabHeadRate")}</th>
+            <th style={{ ...cellNum, ...headCell }}>{t("results.slabHeadCharge")}</th>
           </tr>
         </thead>
         <tbody>
@@ -65,7 +59,7 @@ function SlabTable({ title, rows, subtotal }: { title: string; rows: SlabCharge[
           ))}
           <tr>
             <td style={{ ...cellLabel, fontWeight: 700, color: "var(--ink)" }} colSpan={3}>
-              Subtotal (energy charge)
+              {t("results.slabSubtotal")}
             </td>
             <td style={{ ...cellNum, fontWeight: 700, color: "var(--ink)" }}>{inr(Math.round(subtotal))}</td>
           </tr>
@@ -76,23 +70,24 @@ function SlabTable({ title, rows, subtotal }: { title: string; rows: SlabCharge[
 }
 
 function SlabWorking({ calc }: { calc: CalculationResult }) {
+  const t = useT();
   const totalUnits = Math.round(calc.actualBreakdown.reduce((s, r) => s + r.units, 0));
   const months = calc.monthsInPeriod && calc.monthsInPeriod > 0 ? calc.monthsInPeriod : 1;
   const perMonth = Math.round(totalUnits / months);
+  const monthWord = months === 1 ? t("results.monthSingular") : t("results.monthPlural");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", marginTop: "var(--space-3)" }}>
       <p style={{ font: "var(--text-small)", color: "var(--ink-soft)" }}>
-        Your <strong>{totalUnits} units</strong> over <strong>{months} equivalent month
-        {months === 1 ? "" : "s"}</strong> ≈ {perMonth} units/month, each month charged at the monthly slabs.
+        {t("results.workingSentence", { units: totalUnits, months, monthWord, perMonth })}
       </p>
-      <SlabTable title="As billed — all units lumped into one period" rows={calc.actualBreakdown} subtotal={calc.actualEnergyCharge} />
+      <SlabTable title={t("results.slabAsBilledTitle")} rows={calc.actualBreakdown} subtotal={calc.actualEnergyCharge} />
       <SlabTable
-        title="Lawful monthly-equivalent pro-rata (Reg. 16.1.1)"
+        title={t("results.slabLawfulTitle")}
         rows={calc.lawfulBreakdown}
         subtotal={calc.lawfulEnergyCharge}
       />
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, paddingTop: 10, borderTop: "2px solid var(--ink)", font: "var(--text-h3)", color: "var(--ink)" }}>
-        <span>Difference = overcharge</span>
+        <span>{t("results.differenceOvercharge")}</span>
         <span style={{ whiteSpace: "nowrap" }}>{inr(Math.round(calc.overcharge))}</span>
       </div>
     </div>
@@ -124,6 +119,8 @@ export function ResultsStep({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const t = useT();
+  const { lang } = useLanguage();
   const { diagnosis, calculation, evidence } = result;
   const actionable = diagnosis.isActionable;
   const overcharge = calculation?.overcharge ?? 0;
@@ -138,7 +135,15 @@ export function ResultsStep({
       ? Math.max(0, Math.round(amountBilled) - Math.round(overcharge))
       : undefined;
 
-  const title = DIAGNOSIS_TITLE[diagnosis.classification] ?? "Result";
+  const titleForClass = t(`results.title.${diagnosis.classification}`);
+  const title = titleForClass === `results.title.${diagnosis.classification}` ? t("results.fallbackTitle") : titleForClass;
+
+  // Diagnosis summary/rationale: in Marathi, look up the translated sibling by the engine's stable
+  // messageKey; the engine's English strings remain the source of truth and the fallback.
+  const dx = diagnosis.messageKey;
+  const summaryText = lang === "mr" && dx ? t(`results.diagnosis.${dx}.summary`) : diagnosis.summary;
+  const rationaleText =
+    lang === "mr" && dx ? t(`results.diagnosis.${dx}.rationale`) : diagnosis.rationale;
 
   // The mascot reacts to the verdict: relieved-happy when genuine, rallying-helping when overcharged.
   const relieved = diagnosis.classification === "legitimate";
@@ -164,53 +169,42 @@ export function ResultsStep({
             <div style={{ font: "var(--text-h2)", color: "var(--ink)", marginTop: 4 }}>{title}</div>
           </div>
         </div>
-        <p>{diagnosis.summary}</p>
-        {diagnosis.rationale && (
-          <p style={{ marginTop: "var(--space-3)", color: "var(--ink-faint)" }}>{diagnosis.rationale}</p>
+        <p>{summaryText}</p>
+        {rationaleText && (
+          <p style={{ marginTop: "var(--space-3)", color: "var(--ink-faint)" }}>{rationaleText}</p>
         )}
       </Card>
 
       {/* 2. Reassurance + pay-under-protest figure — immediately after the finding, when there is an overcharge. */}
       {actionable && overcharge > 0 && (
-        <Alert tone="info" title="Your power will not be cut off">
-          You get at least 15 days&rsquo; written notice before any disconnection.{" "}
-          {fairAmount !== undefined ? (
-            <>
-              Pay the fair amount of <strong>{inr(fairAmount)}</strong> under written protest — the
-              rest ({inr(overcharge)}, the estimated overcharge) is what you are disputing.
-            </>
-          ) : (
-            <>
-              Pay your bill <strong>minus the estimated overcharge of {inr(overcharge)}</strong>{" "}
-              under written protest — dispute only that difference.
-            </>
-          )}{" "}
-          Under the proviso to Section 56(1) of the Electricity Act, 2003, supply cannot be
-          disconnected for an amount genuinely in dispute and deposited under protest.
+        <Alert tone="info" title={t("results.reassureTitle")}>
+          {fairAmount !== undefined
+            ? t("results.payFair", { fair: inr(fairAmount), overcharge: inr(overcharge) })
+            : t("results.payNoFair", { overcharge: inr(overcharge) })}
+          {t("results.paySection56")}
         </Alert>
       )}
 
       {/* 3. The estimate + the full slab-by-slab working (trust). */}
       {unsupported ? (
-        <Alert tone="warning" title="This tariff isn't supported yet">
+        <Alert tone="warning" title={t("results.unsupportedTitle")}>
           {calculation?.estimateCaveat}
         </Alert>
       ) : noPriceableData ? (
-        <Alert tone="warning" title="Outside our verified tariff data">
-          This billing period falls outside the tariff data we have verified, so we cannot compute a
-          reliable figure. Adig only shows numbers it can stand behind.
+        <Alert tone="warning" title={t("results.outsideTitle")}>
+          {t("results.outsideBody")}
         </Alert>
       ) : (
         calculation && (
           <div className="adig-stack-sm">
             <CostBreakdown
-              label={overcharge > 0 ? "Likely overcharge" : "Overcharge"}
+              label={overcharge > 0 ? t("results.costLikely") : t("results.costOvercharge")}
               total={Math.round(overcharge)}
               items={[
-                { label: "Energy charge — as billed", amount: Math.round(calculation.actualEnergyCharge) },
-                { label: "Energy charge — lawful pro-rata", amount: Math.round(calculation.lawfulEnergyCharge) },
+                { label: t("results.energyBilled"), amount: Math.round(calculation.actualEnergyCharge) },
+                { label: t("results.energyLawful"), amount: Math.round(calculation.lawfulEnergyCharge) },
               ]}
-              caption={calculation.estimateCaveat}
+              caption={lang === "mr" ? t("results.estimateCaveat") : calculation.estimateCaveat}
             />
 
             {showWorkingToggle && (
@@ -226,16 +220,15 @@ export function ResultsStep({
                   }}
                 >
                   <Chevron open={showWorking} />
-                  {showWorking ? "Hide" : "See"} the full slab-by-slab working
+                  {showWorking ? t("results.hideWorking") : t("results.seeWorking")}
                 </button>
                 {showWorking && <SlabWorking calc={calculation} />}
               </div>
             )}
 
             {partialCoverage && (
-              <Alert tone="warning" title="Figure covers only part of the period">
-                Part of this billing period is outside our verified tariff data, so the estimate
-                above covers only the months we could price ({calculation.tableLabel}).
+              <Alert tone="warning" title={t("results.partialTitle")}>
+                {t("results.partialBody", { label: calculation.tableLabel })}
               </Alert>
             )}
           </div>
@@ -244,18 +237,21 @@ export function ResultsStep({
 
       {/* 4. Evidence checklist (spec story 3/4). */}
       {actionable && evidence.length > 0 && (
-        <Card eyebrow="Evidence" title="Gather these before you file" accent="yellow">
+        <Card eyebrow={t("results.evidenceEyebrow")} title={t("results.evidenceTitle")} accent="yellow">
           <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: "var(--space-3)" }}>
-            {evidence.map((item) => (
+            {evidence.map((item) => {
+              const label = lang === "mr" ? t(`evidence.${item.id}.label`) : item.label;
+              const description = lang === "mr" ? t(`evidence.${item.id}.description`) : item.description;
+              return (
               <li key={item.id} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <span aria-hidden="true" style={{ marginTop: 2 }}>
                   •
                 </span>
                 <span>
-                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{item.label}</span>
-                  {item.description && (
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>{label}</span>
+                  {description && (
                     <span style={{ display: "block", color: "var(--ink-faint)", font: "var(--text-small)" }}>
-                      {item.description}
+                      {description}
                     </span>
                   )}
                   {item.confidence === "draft" && (
@@ -265,22 +261,23 @@ export function ResultsStep({
                   )}
                 </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </Card>
       )}
 
       <div className="adig-sticky-cta">
         <Button variant="secondary" onClick={onBack}>
-          Back
+          {t("common.back")}
         </Button>
         {actionable ? (
           <Button variant="primary" fullWidth onClick={onNext}>
-            Get my document
+            {t("common.getMyDocument")}
           </Button>
         ) : (
           <Button variant="primary" fullWidth onClick={onBack}>
-            Check another bill
+            {t("common.checkAnother")}
           </Button>
         )}
       </div>

@@ -77,6 +77,13 @@ export interface DiagnosisResult {
   /** Plain-language explanation shown to the citizen. */
   summary: string;
   rationale?: string;
+  /**
+   * Stable identifier for THIS summary/rationale pair, distinct from `classification` (which is not
+   * unique — `legitimate` has several variants). The UI uses it to look up a translated (e.g. Marathi)
+   * sibling in the i18n `results.diagnosis` table; `summary`/`rationale` above stay the English source
+   * of truth and the fallback. Additive — the pure pipeline and its fixtures are unaffected.
+   */
+  messageKey?: string;
 }
 
 // ----- Calculation (optional per vertical) -----

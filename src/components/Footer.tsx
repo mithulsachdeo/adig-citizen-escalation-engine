@@ -1,4 +1,6 @@
+"use client";
 import React from "react";
+import { useT } from "@/i18n/context";
 
 // Trust / legal footer (T9). Shown on every page. Two load-bearing statements:
 //   1. Self-help disclaimer — Adig is not legal advice (mirrors the disclaimer on every instrument).
@@ -6,6 +8,7 @@ import React from "react";
 //      AI provider) stated plainly, so the citizen knows exactly what leaves the device.
 // `app-chrome` marks it non-document chrome so the print stylesheet (addendum §4) hides it.
 export function Footer() {
+  const t = useT();
   return (
     <footer
       className="adig-container app-chrome"
@@ -17,18 +20,12 @@ export function Footer() {
     >
       <div style={{ display: "grid", gap: "var(--space-3)" }}>
         <p style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>
-          <strong style={{ color: "var(--ink-soft)" }}>Adig is a self-help tool, not legal advice.</strong>{" "}
-          Using it does not create a lawyer–client relationship. Overcharge figures are estimates based
-          on the standard monthly pro-rata rule (MERC Supply Code 2021, Regulation 16.1.1) — not a final
-          legal determination. Review every detail and confirm the current forum contact before you send
-          anything.
+          <strong style={{ color: "var(--ink-soft)" }}>{t("footer.disclaimerStrong")}</strong>
+          {t("footer.disclaimerBody")}
         </p>
         <p style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>
-          <strong style={{ color: "var(--ink-soft)" }}>Your privacy:</strong> we store nothing you enter.
-          Your bill details stay on your device. The only thing that leaves it is the short description
-          you choose to write, which is sent to our AI provider solely to draft one plain-language
-          paragraph and is not retained. We keep no account and record only anonymous, non-identifying
-          usage counts.
+          <strong style={{ color: "var(--ink-soft)" }}>{t("footer.privacyStrong")}</strong>
+          {t("footer.privacyBody")}
         </p>
       </div>
     </footer>

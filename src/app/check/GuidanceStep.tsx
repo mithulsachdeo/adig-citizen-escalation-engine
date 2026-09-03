@@ -6,7 +6,7 @@ import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import type { PipelineResult, Routing, Sidecar } from "@/engine/types";
 import { getTierRouting } from "@/engine/routing";
-import { t } from "@/i18n";
+import { useT } from "@/i18n/context";
 
 // Guidance / Submit screen (spec D18, story 8). Shows, for the selected rung, WHERE and HOW to file:
 // forum, channel, address/contact, and the timeline. Routing comes from the verbatim routing module
@@ -38,6 +38,7 @@ function RoutingCard({
   routing: Routing;
   confidence: "verified" | "draft";
 }) {
+  const t = useT();
   return (
     <Card eyebrow={eyebrow} title={title} accent={accent}>
       <div style={{ marginBottom: "var(--space-4)" }}>
@@ -73,6 +74,7 @@ export function GuidanceStep({
   onBack: () => void;
   onRestart: () => void;
 }) {
+  const t = useT();
   const tier = result.tier;
   // Circle only changes the CGRF tier; getTierRouting returns the same constant for the others and a
   // circle-agnostic generic CGRF when the circle is unknown (never a wrong-forum guess).
@@ -80,7 +82,7 @@ export function GuidanceStep({
 
   return (
     <div className="adig-stack">
-      <Card eyebrow="Submit" title={t("guidance.submitTitle")} accent="green">
+      <Card eyebrow={t("progress.submit")} title={t("guidance.submitTitle")} accent="green">
         <p>{t("guidance.submitIntro")}</p>
       </Card>
 

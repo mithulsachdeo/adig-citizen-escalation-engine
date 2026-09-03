@@ -11,7 +11,6 @@ import {
   EMPTY_FORM,
   EMPTY_PRIOR_REF,
   SCREEN_STEP,
-  STEP_LABELS,
   buildUserInput,
   validateIntake,
   type FormState,
@@ -26,7 +25,7 @@ import { DocumentsStep } from "./DocumentsStep";
 import { GuidanceStep } from "./GuidanceStep";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
-import { t } from "@/i18n";
+import { useT } from "@/i18n/context";
 import { analytics } from "@/lib/analytics";
 
 // Orchestrator for the intake → results → documents → guidance flow (T7). Owns all state; the pure
@@ -34,14 +33,12 @@ import { analytics } from "@/lib/analytics";
 // narrative — goes through ApiNarrativeGenerator (which falls back offline). The tariff/rates are the
 // engine's; nothing entered here is persisted (store-nothing).
 
-const SCREEN_TITLE: Record<Screen, string> = {
-  intake: "Check your bill",
-  results: "What we found",
-  documents: "Your escalation document",
-  guidance: "How to submit",
-};
+// Progress-tracker step keys → i18n `progress.*` (labels toggle with the UI language).
+const STEP_KEYS = ["diagnose", "calculate", "evidence", "document", "submit"] as const;
 
 export function CheckFlow() {
+  const t = useT();
+  const stepLabels = STEP_KEYS.map((k) => t(`progress.${k}`));
   const [screen, setScreen] = useState<Screen>("intake");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -209,10 +206,10 @@ export function CheckFlow() {
   return (
     <main className="adig-container" style={{ paddingBlock: "var(--space-5) var(--space-6)" }}>
       <div style={{ overflowX: "auto", paddingBottom: "var(--space-2)", marginBottom: "var(--space-5)" }}>
-        <StepProgress steps={STEP_LABELS} current={SCREEN_STEP[screen]} />
+        <StepProgress steps={stepLabels} current={SCREEN_STEP[screen]} />
       </div>
 
-      <h1 style={{ font: "var(--text-h1)", marginBottom: "var(--space-5)" }}>{SCREEN_TITLE[screen]}</h1>
+      <h1 style={{ font: "var(--text-h1)", marginBottom: "var(--space-5)" }}>{t(`screens.${screen}`)}</h1>
 
       {resumable && (
         <div style={{ marginBottom: "var(--space-5)" }}>

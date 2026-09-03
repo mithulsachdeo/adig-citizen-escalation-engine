@@ -1,11 +1,14 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 // Light UI → ink mark (addendum §7 colourway rule). Logo is decorative; wordmark carries the name.
+// Client component: it hosts the language switcher, which needs runtime language state.
 export function Header() {
   return (
     <header className="app-chrome adig-masthead">
-      <div className="adig-wide">
+      <div className="adig-wide adig-masthead__row">
         {/* The whole lockup links home. */}
         <Link
           href="/"
@@ -16,34 +19,37 @@ export function Header() {
           <img src="/logo-primary.svg" alt="" width={40} height={40} aria-hidden="true" />
           {/* Wordmark + tagline, matching the full-lockup asset (05-adig-full-lockup) in the light-UI ink colourway. */}
           <span style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-          <span style={{ font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.01em" }}>
-            Adig
-            <span style={{ font: "var(--text-small)", fontWeight: 500, color: "var(--ink-faint)", marginInlineStart: 8 }}>
-              अडिग
+            <span style={{ font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+              Adig
+              <span style={{ font: "var(--text-small)", fontWeight: 500, color: "var(--ink-faint)", marginInlineStart: 8 }}>
+                अडिग
+              </span>
+            </span>
+            {/* Tagline = ADIG backronym; stays English in both languages (the initials only spell ADIG in
+                English, and "Adig" is a proper noun). The four leading capitals carry the brand colour. */}
+            <span
+              style={{
+                marginTop: 4,
+                fontSize: "0.6875rem",
+                fontWeight: 500,
+                letterSpacing: "0.04em",
+                color: "var(--ink-faint)",
+              }}
+            >
+              {(() => {
+                const em = { fontWeight: 700, color: "var(--brand-green-ink)" } as const;
+                return (
+                  <>
+                    <span style={em}>A</span>ssistance for <span style={em}>D</span>isputes with{" "}
+                    <span style={em}>I</span>nstitutions &amp; <span style={em}>G</span>overnment
+                  </>
+                );
+              })()}
             </span>
           </span>
-          {/* Tagline = ADIG backronym; the four leading capitals carry the brand colour. */}
-          <span
-            style={{
-              marginTop: 4,
-              fontSize: "0.6875rem",
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-              color: "var(--ink-faint)",
-            }}
-          >
-            {(() => {
-              const em = { fontWeight: 700, color: "var(--brand-green-ink)" } as const;
-              return (
-                <>
-                  <span style={em}>A</span>ssistance for <span style={em}>D</span>isputes with{" "}
-                  <span style={em}>I</span>nstitutions &amp; <span style={em}>G</span>overnment
-                </>
-              );
-            })()}
-          </span>
-        </span>
         </Link>
+
+        <LanguageSwitcher />
       </div>
     </header>
   );

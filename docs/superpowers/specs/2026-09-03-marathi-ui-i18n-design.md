@@ -1,7 +1,7 @@
 # Marathi UI language support (runtime switcher) — design
 
 **Date:** 2026-09-03
-**Status:** proposed (awaiting sign-off)
+**Status:** built on branch `feat/marathi-i18n` (tsc clean, 82 tests pass, verified on dev server)
 **Scope owner:** Mithul Sachdeo
 **Context:** Adig / Citizen Escalation Engine. Submission 2026-09-06.
 
@@ -112,6 +112,21 @@ not a v1 priority.
   consumer.
 - `tsc --noEmit` (the `Strings` type is the real guard) + full vitest, per the
   local-build gotchas (no `next build` while dev runs).
+
+## Build-time decisions (refine the above)
+
+Two things surfaced during the build and were decided with the owner:
+
+1. **Everything toggles, including the check-flow's legal-explanatory text.** The results screen's
+   diagnosis summaries, estimate caveat, evidence descriptions, and the pay-under-protest / Section
+   56(1) / Reg 16.1.1 sentences now translate too (beta Marathi). Only the generated *instrument*
+   (the letter itself) stays English. The engine stays the English source of truth: a new additive
+   `DiagnosisResult.messageKey` lets the UI look up the Marathi sibling by a stable id, and the pure
+   pipeline / its fixtures are unchanged.
+2. **The `t()` seam gained `{name}` interpolation** for the few sentences that embed figures.
+
+Beta scope cut (noted, non-blocking): the *unsupported-tariff* caveat (an interpolated engine edge
+case) stays English even in Marathi mode.
 
 ## Risks
 
