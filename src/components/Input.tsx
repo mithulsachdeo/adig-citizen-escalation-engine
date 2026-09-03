@@ -14,7 +14,7 @@ export function Input({
   error,
   required,
 }: {
-  label: string;
+  label: React.ReactNode;
   placeholder?: string;
   unit?: string;
   value?: string;

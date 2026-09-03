@@ -57,7 +57,7 @@ export function SelectField({
   error,
   placeholder = "Select…",
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
   options: SelectOption[];
@@ -131,7 +131,7 @@ export function DateField({
   error,
   max,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
@@ -216,7 +216,7 @@ export function BooleanField({
   onChange,
   help,
 }: {
-  label: string;
+  label: React.ReactNode;
   checked: boolean;
   onChange: (checked: boolean) => void;
   help?: string;
@@ -255,7 +255,7 @@ export function TextareaField({
   help,
   rows = 4,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;

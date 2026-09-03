@@ -388,6 +388,98 @@ html[data-adig-intro="skip"] .adig-intro { display: none !important; }
   outline-offset: 2px;
 }
 
+/* Bill guide — collapsible "where is this on my bill?" helper on the intake screen. */
+.adig-billguide {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--canvas-raised);
+  margin-bottom: var(--space-5);
+  overflow: hidden;
+}
+.adig-billguide__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+}
+.adig-billguide__toggle:hover { color: var(--brand-green-ink); }
+.adig-billguide__toggle:focus-visible { outline: 2px solid var(--brand-green-ink); outline-offset: -2px; }
+.adig-billguide__body { padding: 0 16px 16px; }
+.adig-billguide__intro { font: var(--text-small); color: var(--ink-soft); margin: 0 0 var(--space-4); }
+.adig-billguide__figure {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+  line-height: 0;
+}
+.adig-billguide__img { display: block; width: 100%; height: auto; }
+.adig-billguide__marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-coral);
+  color: #fff;
+  font: var(--text-small);
+  font-weight: 800;
+  line-height: 1;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 5px oklch(0% 0 0 / 0.4);
+}
+.adig-billguide__legend { list-style: none; padding: 0; margin: var(--space-4) 0 0; display: grid; gap: 8px; }
+.adig-billguide__item { display: flex; align-items: flex-start; gap: 10px; font: var(--text-small); color: var(--ink); }
+.adig-billguide__num {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-coral);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+.adig-billguide__note { font: var(--text-small); color: var(--ink-faint); font-style: italic; margin: var(--space-4) 0 0; }
+
+/* Numbered badge on a form field label — matches the bill-guide markers (same coral circle). */
+.adig-fieldnum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-inline-end: 6px;
+  border-radius: 999px;
+  background: var(--accent-coral);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
+}
+/* Muted "not on your bill" tag for fields with no bill location. */
+.adig-fieldnote { font-weight: 500; color: var(--ink-faint); }
+
 /* ---- Landing layout — use the horizontal space (impeccable redesign) ---- */
 /* Wider wrapper for the landing sections (the app flow still uses .adig-container). */
 .adig-wide {

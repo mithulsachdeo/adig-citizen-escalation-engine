@@ -5,12 +5,18 @@ import { Button } from "@/components/Button";
 import { SelectField, BooleanField, DateField } from "./fields";
 import type { FormState } from "./state";
 import { useT } from "@/i18n/context";
+import { BillGuide } from "@/components/BillGuide";
 
 // Intake screen (spec story 1). Collects the UserInput fields — rates are NOT asked (spec D12).
 // Accessibility: the whole set is a <fieldset> with a <legend>; every control has a visible label
 // (from Input / SelectField / BooleanField); required fields marked and errors announced inline.
 
 type Errors = Partial<Record<keyof FormState, string>>;
+
+// Numbered badge matching the bill-guide markers, so field ③ ↔ bill ③.
+function FieldNum({ n }: { n: number }) {
+  return <span className="adig-fieldnum" aria-hidden="true">{n}</span>;
+}
 
 export function IntakeStep({
   form,
@@ -32,13 +38,15 @@ export function IntakeStep({
         onSubmit();
       }}
     >
+      <BillGuide />
+
       <fieldset style={{ border: "none", padding: 0, margin: 0 }} className="adig-stack">
         <legend style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginBottom: 4 }}>
           {t("intake.legend")}
         </legend>
 
         <Input
-          label={t("intake.unitsLabel")}
+          label={<><FieldNum n={1} />{t("intake.unitsLabel")}</>}
           type="number"
           inputMode="numeric"
           required
@@ -50,14 +58,14 @@ export function IntakeStep({
 
         <div className="adig-stack-sm">
           <DateField
-            label={t("intake.periodFrom")}
+            label={<><FieldNum n={2} />{t("intake.periodFrom")}</>}
             required
             value={form.periodFrom}
             onChange={(v) => setField("periodFrom", v)}
             error={errors.periodFrom}
           />
           <DateField
-            label={t("intake.periodTo")}
+            label={<><FieldNum n={2} />{t("intake.periodTo")}</>}
             required
             value={form.periodTo}
             onChange={(v) => setField("periodTo", v)}
@@ -66,7 +74,7 @@ export function IntakeStep({
         </div>
 
         <Input
-          label={t("intake.amountLabel")}
+          label={<><FieldNum n={3} />{t("intake.amountLabel")}</>}
           type="number"
           inputMode="numeric"
           value={form.amountBilled}
@@ -76,7 +84,7 @@ export function IntakeStep({
         />
 
         <SelectField
-          label={t("intake.readingLabel")}
+          label={<><FieldNum n={4} />{t("intake.readingLabel")}</>}
           required
           value={form.readingType}
           onChange={(v) => setField("readingType", v)}
@@ -90,7 +98,7 @@ export function IntakeStep({
         />
 
         <SelectField
-          label={t("intake.categoryLabel")}
+          label={<><FieldNum n={5} />{t("intake.categoryLabel")}</>}
           required
           value={form.category}
           onChange={(v) => setField("category", v)}
@@ -100,14 +108,14 @@ export function IntakeStep({
         />
 
         <Input
-          label={t("intake.circleLabel")}
+          label={<><FieldNum n={6} />{t("intake.circleLabel")}</>}
           value={form.circle}
           onChange={(e) => setField("circle", e.target.value)}
           placeholder={t("intake.circlePlaceholder")}
         />
 
         <SelectField
-          label={t("intake.meterLabel")}
+          label={<>{t("intake.meterLabel")} <span className="adig-fieldnote">· {t("intake.notOnBill")}</span></>}
           value={form.meterType}
           onChange={(v) => setField("meterType", v)}
           options={[
@@ -118,7 +126,7 @@ export function IntakeStep({
         />
 
         <Input
-          label={t("intake.priorAvgLabel")}
+          label={<><FieldNum n={7} />{t("intake.priorAvgLabel")}</>}
           type="number"
           inputMode="numeric"
           value={form.priorMonthlyAvgUnits}
@@ -128,7 +136,7 @@ export function IntakeStep({
         />
 
         <BooleanField
-          label={t("intake.recentSwapLabel")}
+          label={<>{t("intake.recentSwapLabel")} <span className="adig-fieldnote">· {t("intake.notOnBill")}</span></>}
           checked={form.recentMeterSwap}
           onChange={(c) => setField("recentMeterSwap", c)}
           help={t("intake.recentSwapHelp")}

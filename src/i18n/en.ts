@@ -80,6 +80,22 @@ export const en = {
     privacyBody:
       " we store nothing you enter. Your bill details stay on your device. The only thing that leaves it is the short description you choose to write, which is sent to our AI provider solely to draft one plain-language paragraph and is not retained. We keep no account and record only anonymous, non-identifying usage counts.",
   },
+  billGuide: {
+    toggle: "Not sure where to find these? See a sample bill",
+    intro:
+      "This is a sample MSEDCL bill with personal details removed. The markers show where each detail sits — look in the same places on your own bill.",
+    caption: "Sample bill — personal details removed.",
+    note: "Meter type and whether your meter was recently replaced are not printed on the bill — only you know those.",
+    legend: {
+      units: "Units billed",
+      period: "Billing period — the two reading dates",
+      amount: "Amount billed",
+      reading: "Reading type — look for “Meter Status”",
+      category: "Consumer category",
+      priorAvg: "Prior monthly average — from the 12-month chart",
+      circle: "Your circle / division",
+    },
+  },
   intake: {
     legend: "Enter the details from your disputed bill. We store nothing you type.",
     unitsLabel: "Units billed (kWh)",
@@ -104,6 +120,7 @@ export const en = {
     recentSwapLabel: "Meter was recently replaced",
     recentSwapHelp: "Tick this if a new (often smart) meter was installed just before this bill.",
     submit: "Check my bill",
+    notOnBill: "not on your bill",
   },
   results: {
     diagnosisEyebrow: "Diagnosis",
