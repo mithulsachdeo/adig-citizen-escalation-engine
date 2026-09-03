@@ -260,6 +260,7 @@ export function CheckFlow() {
         <GuidanceStep
           result={result}
           circle={input.circle}
+          setCircle={(v) => setField("circle", v)}
           rtiSidecar={rtiSidecar}
           assembled={assembled}
           onBack={() => setScreen("documents")}

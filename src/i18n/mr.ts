@@ -111,6 +111,8 @@ export const mr: Strings = {
     categoryResidential: "निवासी (LT-I-B)",
     circleLabel: "MSEDCL मंडळ / उप-विभाग",
     circlePlaceholder: "तुमच्या बिलावरून (ऐच्छिक)",
+    circleHelp: "तुमचे मंडळ तुमच्या बिलावर छापलेले असते. तक्रार वाढवल्यास ते नेमके CGRF कार्यालय निवडते.",
+    circleNotSure: "खात्री नाही / इतर मंडळ",
     meterLabel: "मीटर प्रकार",
     meterRegular: "नेहमीचे",
     meterSmart: "स्मार्ट मीटर",
@@ -263,6 +265,8 @@ export const mr: Strings = {
     englishDocNote:
       "कायदेशीर अर्ज इंग्रजीत तयार होतो; मंच इंग्रजी अर्ज स्वीकारतात.",
     // "कसा दाखल करायचा" — पायऱ्या (बीटा भाषांतर).
+    circlePickerTitle: "तुमचे MSEDCL मंडळ कोणते?",
+    circlePickerHelp: "तुमच्या भागाचे नेमके CGRF कार्यालय व पत्ता पाहण्यासाठी तुमचे मंडळ निवडा.",
     filingHeading: "कसा दाखल करायचा — टप्प्याटप्प्याने",
     newTabNote:
       "ही लिंक अधिकृत संकेतस्थळ नवीन टॅबमध्ये उघडते — तुमचे पत्र कॉपी करता यावे यासाठी हा Adig टॅब उघडा ठेवा.",
@@ -282,6 +286,10 @@ export const mr: Strings = {
         attach: "तुमचे पुरावे जोडा — वादग्रस्त बिल आणि आधारभूत फोटो.",
         submit:
           "सबमिट करा आणि स्क्रीनवर दिसणारा ICRS तक्रार क्रमांक नोंदवा — CGRF कडे गेल्यास तो लागेल.",
+      },
+      cgrfGeneric: {
+        find: "अधिकृत MSEDCL यादीतून तुमच्या मंडळाचा CGRF आणि त्याचा पत्ता शोधा.",
+        findLink: "अधिकृत MSEDCL CGRF यादी उघडा",
       },
       cgrf: {
         print: "तुमचा अर्ज (Schedule A) आणि Annexure A — टप्प्यानुसार गणना — एकत्र छापा.",

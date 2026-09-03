@@ -111,6 +111,8 @@ export const en = {
     categoryResidential: "Residential (LT-I-B)",
     circleLabel: "MSEDCL circle / sub-division",
     circlePlaceholder: "From your bill (optional)",
+    circleHelp: "Your circle is printed on your bill. It picks the exact CGRF office if you escalate.",
+    circleNotSure: "Not sure / other circle",
     meterLabel: "Meter type",
     meterRegular: "Regular",
     meterSmart: "Smart meter",
@@ -271,6 +273,9 @@ export const en = {
     // Shown only in Marathi mode: the generated instrument stays English.
     englishDocNote:
       "The legal document is generated in English; the forums accept English applications.",
+    // Just-in-time circle picker (spec D29): shown on the CGRF tier when no circle was chosen at intake.
+    circlePickerTitle: "Which is your MSEDCL circle?",
+    circlePickerHelp: "Select your circle to see the exact CGRF office and address for your area.",
     // "How to file, step by step" walkthrough (structure comes from routing.filingSteps; sentences here).
     filingHeading: "How to file — step by step",
     newTabNote:
@@ -291,6 +296,10 @@ export const en = {
         attach: "Attach your evidence — the disputed bill and any supporting photos.",
         submit:
           "Submit, and note the ICRS Complaint ID shown on screen — you’ll need it if you escalate to the CGRF.",
+      },
+      cgrfGeneric: {
+        find: "Find your Circle's CGRF and its address on the official MSEDCL list.",
+        findLink: "Open the official MSEDCL CGRF list",
       },
       cgrf: {
         print: "Print your application (Schedule A) together with Annexure A — the slab-by-slab calculation.",

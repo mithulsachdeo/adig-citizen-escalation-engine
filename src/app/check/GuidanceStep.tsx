@@ -6,7 +6,8 @@ import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import type { PipelineResult, Routing, Sidecar, FilingStep } from "@/engine/types";
 import type { AssembledInstrument } from "@/engine/instruments";
-import { getTierRouting } from "@/engine/routing";
+import { getTierRouting, CIRCLES } from "@/engine/routing";
+import { SelectField } from "./fields";
 import { useT } from "@/i18n/context";
 
 // Guidance / Submit screen (spec D18, story 8). Shows, for the selected rung, WHERE and HOW to file:
@@ -167,6 +168,7 @@ function RoutingCard({
 export function GuidanceStep({
   result,
   circle,
+  setCircle,
   rtiSidecar,
   assembled,
   onBack,
@@ -175,6 +177,8 @@ export function GuidanceStep({
   result: PipelineResult;
   /** Citizen's MSEDCL circle — resolves the jurisdictional CGRF forum (spec D18). */
   circle?: string;
+  /** Late (just-in-time) circle capture on the CGRF tier when none was chosen at intake (spec D29). */
+  setCircle?: (value: string) => void;
   rtiSidecar?: Sidecar;
   /** The selected tier's assembled letter; its submission body powers the copy/download step actions. */
   assembled?: AssembledInstrument | null;
@@ -187,6 +191,10 @@ export function GuidanceStep({
   // circle-agnostic generic CGRF when the circle is unknown (never a wrong-forum guess).
   const tierRouting = tier ? getTierRouting(tier.instrument, circle) ?? tier.routing : null;
 
+  // Just-in-time circle capture: on the CGRF tier with no circle yet, offer the picker so the citizen
+  // can upgrade the generic fallback to their exact forum. Picking updates the shared form state live.
+  const needsCircle = tier?.instrument === "cgrf-schedule-a" && !circle && !!setCircle;
+
   // The letter to surface in the walkthrough — only when it matches THIS tier's card (the RTI sidecar
   // has no generated letter, so its steps carry no copy/download action).
   const letter = assembled?.bodyForSubmission;
@@ -197,6 +205,19 @@ export function GuidanceStep({
       <Card eyebrow={t("progress.submit")} title={t("guidance.submitTitle")} accent="green">
         <p>{t("guidance.submitIntro")}</p>
       </Card>
+
+      {needsCircle && setCircle && (
+        <Card eyebrow={t("guidance.forum")} title={t("guidance.circlePickerTitle")} accent="blue">
+          <SelectField
+            label={t("intake.circleLabel")}
+            value=""
+            onChange={setCircle}
+            help={t("guidance.circlePickerHelp")}
+            placeholder={t("intake.circleNotSure")}
+            options={CIRCLES}
+          />
+        </Card>
+      )}
 
       {tier && tierRouting ? (
         <RoutingCard

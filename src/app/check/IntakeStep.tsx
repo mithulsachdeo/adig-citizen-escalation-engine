@@ -6,6 +6,7 @@ import { SelectField, BooleanField, DateField } from "./fields";
 import type { FormState } from "./state";
 import { useT } from "@/i18n/context";
 import { BillGuide } from "@/components/BillGuide";
+import { CIRCLES } from "@/engine/routing";
 
 // Intake screen (spec story 1). Collects the UserInput fields — rates are NOT asked (spec D12).
 // Accessibility: the whole set is a <fieldset> with a <legend>; every control has a visible label
@@ -107,11 +108,15 @@ export function IntakeStep({
           options={[{ value: "LT-I-B-residential", label: t("intake.categoryResidential") }]}
         />
 
-        <Input
+        {/* Dropdown (spec D29): the ~45 official circles pick the exact CGRF forum. Optional — the empty
+            default reads "Not sure / other", which routes to the generic fallback (never a wrong forum). */}
+        <SelectField
           label={<><FieldNum n={6} />{t("intake.circleLabel")}</>}
           value={form.circle}
-          onChange={(e) => setField("circle", e.target.value)}
-          placeholder={t("intake.circlePlaceholder")}
+          onChange={(v) => setField("circle", v)}
+          help={t("intake.circleHelp")}
+          placeholder={t("intake.circleNotSure")}
+          options={CIRCLES}
         />
 
         <SelectField

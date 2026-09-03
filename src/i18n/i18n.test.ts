@@ -3,6 +3,7 @@ import { t, en, mr } from "./index";
 import {
   ICRS_ROUTING,
   CGRF_PUNE_ROUTING,
+  CGRF_GENERIC_ROUTING,
   OMBUDSMAN_MUMBAI_ROUTING,
   RTI_ROUTING,
 } from "@/engine/routing";
@@ -37,6 +38,7 @@ test("every routing filing-step key resolves to a real string in both en and mr 
   const steps = [
     ...(ICRS_ROUTING.filingSteps ?? []),
     ...(CGRF_PUNE_ROUTING.filingSteps ?? []),
+    ...(CGRF_GENERIC_ROUTING.filingSteps ?? []), // the generic fallback's list-link keys
     ...(OMBUDSMAN_MUMBAI_ROUTING.filingSteps ?? []),
     ...(RTI_ROUTING.filingSteps ?? []),
   ];
