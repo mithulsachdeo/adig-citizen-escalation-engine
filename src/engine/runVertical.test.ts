@@ -82,6 +82,26 @@ test("a blank prior-tier reference number does not satisfy the requirement", () 
   expect(r.error?.code).toBe("missing_prior_tier_ref");
 });
 
+test("a prior-ref tier reports requiresPriorTierRef=true in BOTH the missing and filled states", () => {
+  // Contract the Documents UI gates on: the prior-tier-ref INPUT must stay visible while the citizen
+  // types the reference. So the stable "this stage needs a prior ref" signal (tier.requiresPriorTierRef)
+  // must NOT toggle as the ref goes from absent → present — only `error` may. Gating visibility on the
+  // transient error instead made the input vanish on the first keystroke.
+  const missing = runVertical(msedclElectricitySpec, actionable({ declaredStage: "icrs_ignored" }));
+  expect(missing.tier?.requiresPriorTierRef).toBe(true);
+  expect(missing.error?.code).toBe("missing_prior_tier_ref");
+
+  const filled = runVertical(
+    msedclElectricitySpec,
+    actionable({
+      declaredStage: "icrs_ignored",
+      priorTierRef: { referenceNo: "ICRS/2026/1", date: "2026-07-01", outcome: "no response" },
+    }),
+  );
+  expect(filled.tier?.requiresPriorTierRef).toBe(true); // unchanged — the stable signal
+  expect(filled.error).toBeUndefined(); // only the transient error cleared
+});
+
 test("genuine bill (not actionable) → no tier, no instrument, no error, calc still returned", () => {
   const r = runVertical(
     msedclElectricitySpec,

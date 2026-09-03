@@ -45,6 +45,11 @@ export function DocumentsStep({
   const t = useT();
   const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
+  // Show the prior-tier-ref inputs based on the STABLE "this stage needs a prior ref" signal, so they
+  // stay visible while the citizen types. `needsPriorRef` is the TRANSIENT "still missing" state — it
+  // clears on the first keystroke, so it must only drive the missing-ref message / letter-not-ready
+  // prompt, never the input section's visibility (that bug made the whole section vanish mid-typing).
+  const requiresPriorRef = !!result.tier?.requiresPriorTierRef;
   const needsPriorRef = result.error?.code === "missing_prior_tier_ref";
 
   const stageOptions = [
@@ -96,7 +101,7 @@ export function DocumentsStep({
         onChange={setStage}
         options={stageOptions}
         help={t("documents.stageHelp")}
-        placeholder={t("documents.stageNew")}
+        placeholder={t("common.select")}
       />
 
       {/* Optional free-text account → the caged narrative (any language; nothing legal derived from it). */}
@@ -108,10 +113,11 @@ export function DocumentsStep({
         help={t("documents.descHelp")}
       />
 
-      {/* Schedule A / B rungs must cite the prior tier (spec story 10). */}
-      {needsPriorRef && (
+      {/* Schedule A / B rungs must cite the prior tier (spec story 10). Gated on requiresPriorRef (stable)
+          so the inputs persist while typing; the missing-ref message shows only while it is still missing. */}
+      {requiresPriorRef && (
         <Card eyebrow={t("documents.priorEyebrow")} title={t("documents.priorTitle")} accent="blue">
-          <p style={{ marginBottom: "var(--space-4)" }}>{result.error?.message}</p>
+          {needsPriorRef && <p style={{ marginBottom: "var(--space-4)" }}>{result.error?.message}</p>}
           <div className="adig-stack-sm">
             <Input
               label={t("documents.priorRefNo")}
@@ -134,13 +140,17 @@ export function DocumentsStep({
         </Card>
       )}
 
-      {/* The assembled letter. */}
-      {!needsPriorRef &&
-        (narrativeLoading || !assembled ? (
+      {/* The assembled letter — shown once ready. Until a required prior-tier ref is entered the letter
+          cannot assemble, so prompt for it; otherwise show the preparing state while the narrative loads. */}
+      {!assembled ? (
+        needsPriorRef ? (
+          <p style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>{t("documents.priorRefHint")}</p>
+        ) : (
           <Card title={t("documents.preparingTitle")} accent="pink">
             <p style={{ color: "var(--ink-faint)" }}>{t("documents.preparingBody")}</p>
           </Card>
-        ) : (
+        )
+      ) : (
           <>
             <DocumentPreview
               title={assembled.title}
@@ -170,7 +180,7 @@ export function DocumentsStep({
               </Alert>
             )}
           </>
-        ))}
+        )}
 
       <div className="adig-sticky-cta">
         <Button variant="secondary" onClick={onBack}>
@@ -180,7 +190,7 @@ export function DocumentsStep({
           variant="primary"
           fullWidth
           onClick={onNext}
-          disabled={needsPriorRef || !assembled}
+          disabled={!assembled}
         >
           {t("documents.next")}
         </Button>

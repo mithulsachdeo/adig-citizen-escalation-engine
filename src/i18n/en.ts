@@ -242,6 +242,7 @@ export const en = {
     priorRefNo: "Complaint / order reference number",
     priorDate: "Date of that complaint / order",
     priorOutcome: "What happened (e.g. no response, rejected)",
+    priorRefHint: "Enter the previous stage's reference number above to generate your document.",
     preparingTitle: "Preparing your document…",
     preparingBody: "Writing the statement-of-facts paragraph and assembling the letter.",
     download: "Download (.txt)",
