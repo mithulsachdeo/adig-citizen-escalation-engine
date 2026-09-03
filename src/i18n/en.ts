@@ -271,6 +271,53 @@ export const en = {
     // Shown only in Marathi mode: the generated instrument stays English.
     englishDocNote:
       "The legal document is generated in English; the forums accept English applications.",
+    // "How to file, step by step" walkthrough (structure comes from routing.filingSteps; sentences here).
+    filingHeading: "How to file — step by step",
+    newTabNote:
+      "The link opens the official site in a new tab — keep this Adig tab open so you can copy your letter.",
+    copyLetter: "Copy my letter",
+    letterCopied: "Copied ✓",
+    letterCopiedStatus: "Letter copied — paste it into the complaint box.",
+    downloadLetter: "Download my letter (.txt)",
+    stepVerify: "Confirm this step on the official site — the online form can change.",
+    filing: {
+      icrs: {
+        open: "Open the MSEDCL ICRS complaint page (it opens in a new tab).",
+        openLink: "Open the MSEDCL ICRS complaint page",
+        otp:
+          "Enter your Consumer Number (printed on your bill) and click “Generate OTP”, then enter the OTP sent to your registered mobile and email.",
+        paste:
+          "Choose the billing-related complaint category and paste your complaint text into the description box.",
+        attach: "Attach your evidence — the disputed bill and any supporting photos.",
+        submit:
+          "Submit, and note the ICRS Complaint ID shown on screen — you’ll need it if you escalate to the CGRF.",
+      },
+      cgrf: {
+        print: "Print your application (Schedule A) together with Annexure A — the slab-by-slab calculation.",
+        enclose: "Enclose your evidence and a copy of your earlier ICRS complaint and its outcome.",
+        address:
+          "Address it to the CGRF shown above. If your Circle’s forum is not shown, confirm the correct office and address from the official MSEDCL CGRF list before sending.",
+        send: "Submit in person or by registered post (you may also file by email or the CGRF web portal).",
+        keep:
+          "Keep the stamped acknowledgement or postal receipt and the complaint number — cite it if you go to the Ombudsman.",
+      },
+      ombudsman: {
+        print: "Print your representation (Schedule B) together with Annexure A — the slab-by-slab calculation.",
+        copies: "Prepare 3 copies of all documents (the Ombudsman requires three sets).",
+        enclose: "Enclose a copy of the CGRF order and your earlier complaints.",
+        send: "Submit in person or by post to the address shown above.",
+        keep: "Keep the acknowledgement and a record of the date you submitted it.",
+      },
+      rti: {
+        write:
+          "Write a short RTI application naming the records you want (e.g. meter reading logs and any load-survey data).",
+        address:
+          "Address it to the Public Information Officer (PIO) of your MSEDCL sub-division / division — the office named on your bill.",
+        fee:
+          "Enclose the RTI fee. The fee and payment mode changed under the 2026 Rules — confirm the current amount before sending.",
+        keep: "Send by post or in person and keep the receipt; the PIO must reply within 30 days.",
+      },
+    },
   },
   resume: {
     title: "Resume where you left off?",

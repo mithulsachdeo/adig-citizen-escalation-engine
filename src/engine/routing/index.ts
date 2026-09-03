@@ -15,7 +15,53 @@
 // The stable forum offices (ICRS division, Ombudsman Mumbai, RTI PIO) are constants below and are
 // wired onto the ladder tiers in spec.ts, so Tier.routing is a single source of truth.
 
-import type { Routing } from "../types";
+import type { Routing, FilingStep } from "../types";
+
+// ----- "How to file" walkthroughs. Structure (order, link, letter action, verify-flag) is here;
+// the sentences live in the i18n table under each `textKey`. Only ICRS is online: its deep link was
+// confirmed against the LIVE portal (RegisterComplaint.aspx loads; Consumer-No → Generate-OTP is the
+// real first step; everything past the OTP wall is flagged, not asserted). Offline forums carry NO
+// link (inventing a portal URL would be a guess) and DOWNLOAD the letter for printing instead. -----
+
+const ICRS_FILING_STEPS: FilingStep[] = [
+  {
+    textKey: "guidance.filing.icrs.open",
+    link: {
+      labelKey: "guidance.filing.icrs.openLink",
+      url: "https://wss.mahadiscom.in/ICRS/RegisterComplaint.aspx?Lang=en-US",
+    },
+  },
+  { textKey: "guidance.filing.icrs.otp" }, // Consumer No → Generate OTP — verified live
+  { textKey: "guidance.filing.icrs.paste", letterAction: "copy", verifyAtSource: true },
+  { textKey: "guidance.filing.icrs.attach", verifyAtSource: true },
+  { textKey: "guidance.filing.icrs.submit", verifyAtSource: true },
+];
+
+// Shared by all CGRF routings; the specific office/address is shown in the card above (or, for the
+// generic fallback, is itself verify-at-source), so step 3 points the citizen back to it.
+const CGRF_FILING_STEPS: FilingStep[] = [
+  { textKey: "guidance.filing.cgrf.print", letterAction: "download" },
+  { textKey: "guidance.filing.cgrf.enclose" },
+  { textKey: "guidance.filing.cgrf.address", verifyAtSource: true },
+  { textKey: "guidance.filing.cgrf.send" },
+  { textKey: "guidance.filing.cgrf.keep" },
+];
+
+const OMBUDSMAN_FILING_STEPS: FilingStep[] = [
+  { textKey: "guidance.filing.ombudsman.print", letterAction: "download" },
+  { textKey: "guidance.filing.ombudsman.copies" }, // "3 copies" — verified from the routing channel
+  { textKey: "guidance.filing.ombudsman.enclose" },
+  { textKey: "guidance.filing.ombudsman.send" },
+  { textKey: "guidance.filing.ombudsman.keep" },
+];
+
+// The RTI sidecar has no generated instrument in this flow, so no copy/download letter action.
+const RTI_FILING_STEPS: FilingStep[] = [
+  { textKey: "guidance.filing.rti.write" },
+  { textKey: "guidance.filing.rti.address" },
+  { textKey: "guidance.filing.rti.fee", verifyAtSource: true }, // fee changed under the 2026 Rules
+  { textKey: "guidance.filing.rti.keep" },
+];
 
 // ----- Tier 1: ICRS (division office). Mechanics/timelines verified; live URL = verify-at-source. -----
 
@@ -26,6 +72,7 @@ export const ICRS_ROUTING: Routing = {
   slaText:
     "Resolution within 15 working days for billing complaints (3 working days for supply/connection matters).",
   verifyAtSource: true, // confirm the live ICRS portal path / whether a written division complaint is still accepted
+  filingSteps: ICRS_FILING_STEPS,
 };
 
 // ----- Tier 2: CGRF. Address stable across both official lists; phone/email conflict → omitted. -----
@@ -38,6 +85,7 @@ export const CGRF_PUNE_ROUTING: Routing = {
     "File within 2 years of the cause of action; the Forum issues its order within 60 working days.",
   // contact intentionally omitted — Feb-2024 and Oct-2021 MSEDCL lists give different phone/email.
   verifyAtSource: true,
+  filingSteps: CGRF_FILING_STEPS,
 };
 
 export const CGRF_BARAMATI_ROUTING: Routing = {
@@ -47,6 +95,7 @@ export const CGRF_BARAMATI_ROUTING: Routing = {
   slaText:
     "File within 2 years of the cause of action; the Forum issues its order within 60 working days.",
   verifyAtSource: true,
+  filingSteps: CGRF_FILING_STEPS,
 };
 
 /**
@@ -61,6 +110,7 @@ export const CGRF_GENERIC_ROUTING: Routing = {
   // Post the 2024 amendment there is one Forum per distribution Circle; the correct Forum + address
   // must be read from the live MSEDCL CGRF list.
   verifyAtSource: true,
+  filingSteps: CGRF_FILING_STEPS,
 };
 
 // ----- Tier 3: Ombudsman. Pune → Mumbai per the CURRENT 27 Mar 2026 notification. -----
@@ -74,6 +124,7 @@ export const OMBUDSMAN_MUMBAI_ROUTING: Routing = {
   slaText:
     "Represent within 60 days of the CGRF order — only if the CGRF rejected it, did not decide in time, or caused undue delay.",
   verifyAtSource: true, // re-confirm the postal address (2020 Annexure B value)
+  filingSteps: OMBUDSMAN_FILING_STEPS,
 };
 
 // ----- RTI evidence sidecar. Routing model verified; fee is draft → no rupee figure asserted. -----
@@ -87,6 +138,7 @@ export const RTI_ROUTING: Routing = {
   slaText:
     "The PIO replies within 30 days; a First Appeal lies to the FAA within 30 days. Note: the RTI fee changed under the 2026 Rules — confirm the current fee and payment mode before sending.",
   verifyAtSource: true,
+  filingSteps: RTI_FILING_STEPS,
 };
 
 // ----- Circle → CGRF map -----

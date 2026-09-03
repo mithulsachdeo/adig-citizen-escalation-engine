@@ -172,6 +172,27 @@ export interface LegalGround {
   confidence: Confidence;
 }
 
+/**
+ * One numbered step in the "how to file" walkthrough (online or offline). The verified STRUCTURE
+ * lives here (order, which step carries the portal link, which surfaces the citizen's letter, which
+ * is not fully confirmable); the step SENTENCE lives in the i18n table under `textKey` so it toggles
+ * with the UI language. Never fabricate a `link`: offline channels carry none.
+ */
+export interface FilingStep {
+  /** i18n key for the instruction sentence, e.g. "guidance.filing.icrs.enterConsumerNo". */
+  textKey: string;
+  /** Deep link to the official portal for this step. Present ONLY for verified online channels. */
+  link?: { labelKey: string; url: string };
+  /**
+   * Surface the citizen's generated letter at this step: "copy" for an online paste box,
+   * "download" for an offline print. Wired to the selected tier's submission text; omit where
+   * no letter applies (e.g. the RTI evidence sidecar).
+   */
+  letterAction?: "copy" | "download";
+  /** This step's specifics are volatile or gated (e.g. behind an OTP wall) — flag, don't assert as fact. */
+  verifyAtSource?: boolean;
+}
+
 /** Where and how to submit an instrument (spec D18). Wrong-forum routing is a failure; unverified detail is omitted, not guessed. */
 export interface Routing {
   /** Forum/office name, e.g. "Consumer Grievance Redressal Forum, MSEDCL (Pune)". */
@@ -184,6 +205,8 @@ export interface Routing {
   slaText?: string;
   /** Contact is volatile — pull live at runtime rather than trust the stored value (spec: CGRF phone/email). */
   verifyAtSource?: boolean;
+  /** Ordered "how to file" walkthrough for this forum. Optional; omit for forums without one. */
+  filingSteps?: FilingStep[];
 }
 
 /**

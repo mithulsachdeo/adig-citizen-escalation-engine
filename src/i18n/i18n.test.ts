@@ -1,5 +1,11 @@
 import { test, expect } from "vitest";
 import { t, en, mr } from "./index";
+import {
+  ICRS_ROUTING,
+  CGRF_PUNE_ROUTING,
+  OMBUDSMAN_MUMBAI_ROUTING,
+  RTI_ROUTING,
+} from "@/engine/routing";
 
 test("t() resolves a dot-path string from the en table", () => {
   expect(t("common.back")).toBe(en.common.back);
@@ -25,6 +31,24 @@ test("a key missing in mr falls back to en, then to the key", () => {
 test("a path that resolves to a non-string object returns the key, not the object", () => {
   expect(t("common")).toBe("common");
   expect(t("results.diagnosis", "mr")).toBe("results.diagnosis");
+});
+
+test("every routing filing-step key resolves to a real string in both en and mr (no leaked keys)", () => {
+  const steps = [
+    ...(ICRS_ROUTING.filingSteps ?? []),
+    ...(CGRF_PUNE_ROUTING.filingSteps ?? []),
+    ...(OMBUDSMAN_MUMBAI_ROUTING.filingSteps ?? []),
+    ...(RTI_ROUTING.filingSteps ?? []),
+  ];
+  expect(steps.length).toBeGreaterThan(0);
+  for (const step of steps) {
+    const keys = [step.textKey, ...(step.link ? [step.link.labelKey] : [])];
+    for (const key of keys) {
+      // t() returns the key verbatim on a miss, so "resolves ≠ the key" proves the string exists.
+      expect(t(key, "en")).not.toBe(key);
+      expect(t(key, "mr")).not.toBe(key);
+    }
+  }
 });
 
 test("vars interpolate {name} placeholders in the resolved string", () => {

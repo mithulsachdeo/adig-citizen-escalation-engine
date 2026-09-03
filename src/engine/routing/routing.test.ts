@@ -62,3 +62,54 @@ test("Pune routes to the Mumbai Ombudsman (never a Pune Ombudsman)", () => {
 test("unknown instrument id returns undefined", () => {
   expect(getTierRouting("not-a-tier")).toBeUndefined();
 });
+
+// ----- filingSteps: the "how to file" walkthrough. Online channels carry a real deep link; offline
+// ones carry none (never a fabricated URL). Exactly one step surfaces the citizen's letter. -----
+
+test("ICRS is the only online channel: a real portal deep link, and the letter is COPIED (paste box)", () => {
+  const steps = ICRS_ROUTING.filingSteps ?? [];
+  expect(steps.length).toBeGreaterThan(0);
+
+  const linked = steps.filter((s) => s.link);
+  expect(linked).toHaveLength(1);
+  // The verified live entry point (confirmed against the running portal), not the 403'd bare directory.
+  expect(linked[0].link?.url).toContain("RegisterComplaint.aspx");
+  expect(linked[0].link?.url.startsWith("https://wss.mahadiscom.in/")).toBe(true);
+
+  const letterSteps = steps.filter((s) => s.letterAction);
+  expect(letterSteps).toHaveLength(1);
+  expect(letterSteps[0].letterAction).toBe("copy");
+
+  // Steps past the OTP wall could not be confirmed read-only → they must be flagged, not asserted.
+  expect(steps.some((s) => s.verifyAtSource)).toBe(true);
+});
+
+test("offline forums (CGRF, Ombudsman) give real steps but NO fabricated link, and the letter is DOWNLOADED (print)", () => {
+  for (const routing of [CGRF_PUNE_ROUTING, CGRF_GENERIC_ROUTING, OMBUDSMAN_MUMBAI_ROUTING]) {
+    const steps = routing.filingSteps ?? [];
+    expect(steps.length).toBeGreaterThan(0);
+    expect(steps.every((s) => s.link === undefined)).toBe(true); // offline: never invent a URL
+
+    const letterSteps = steps.filter((s) => s.letterAction);
+    expect(letterSteps).toHaveLength(1);
+    expect(letterSteps[0].letterAction).toBe("download");
+  }
+});
+
+test("the RTI evidence sidecar gets steps but no letter action (the flow generates no RTI letter)", () => {
+  const steps = RTI_ROUTING.filingSteps ?? [];
+  expect(steps.length).toBeGreaterThan(0);
+  expect(steps.every((s) => s.letterAction === undefined)).toBe(true);
+  expect(steps.every((s) => s.link === undefined)).toBe(true);
+});
+
+test("every filing step carries a textKey (the sentence is resolved via i18n, never inlined)", () => {
+  const all = [
+    ...(ICRS_ROUTING.filingSteps ?? []),
+    ...(CGRF_PUNE_ROUTING.filingSteps ?? []),
+    ...(OMBUDSMAN_MUMBAI_ROUTING.filingSteps ?? []),
+    ...(RTI_ROUTING.filingSteps ?? []),
+  ];
+  expect(all.length).toBeGreaterThan(0);
+  expect(all.every((s) => typeof s.textKey === "string" && s.textKey.length > 0)).toBe(true);
+});

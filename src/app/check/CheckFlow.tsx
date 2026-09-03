@@ -261,6 +261,7 @@ export function CheckFlow() {
           result={result}
           circle={input.circle}
           rtiSidecar={rtiSidecar}
+          assembled={assembled}
           onBack={() => setScreen("documents")}
           onRestart={restart}
         />
