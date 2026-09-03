@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "@/styles/globals.css";
+import { IntroCurtain } from "@/components/IntroCurtain";
 
 // design.md: single Latin typeface Inter; Noto Sans Devanagari carries Marathi (addendum §5).
 const inter = Inter({
@@ -32,8 +33,23 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${devanagari.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${inter.variable} ${devanagari.variable}`} suppressHydrationWarning>
+      <body>
+        {/* Pre-paint: hide the intro curtain BEFORE first paint for repeat-in-session / reduced-motion
+            visitors, so it never flashes for them. First-time visitors keep it (it's in the initial HTML,
+            covering the page → strict curtain→landing order, no landing flash). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(sessionStorage.getItem('adig_intro_seen')||matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-adig-intro','skip')}}catch(e){}",
+          }}
+        />
+        <noscript>
+          <style>{`.adig-intro{display:none!important}`}</style>
+        </noscript>
+        <IntroCurtain />
+        {children}
+      </body>
     </html>
   );
 }

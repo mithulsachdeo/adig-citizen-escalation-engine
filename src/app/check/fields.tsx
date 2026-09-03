@@ -1,5 +1,5 @@
 "use client";
-import React, { useId } from "react";
+import React, { useId, useRef } from "react";
 
 // Form controls the design system does not ship (it only has a single-line <Input>).
 // These match the Input component's look (addendum §2: visible <label> tied via htmlFor/id,
@@ -111,6 +111,94 @@ export function SelectField({
             </option>
           ))}
         </select>
+      </span>
+      {help && !error && (
+        <span id={helpId} style={helpStyle}>
+          {help}
+        </span>
+      )}
+      {error && <ErrorText id={errId}>{error}</ErrorText>}
+    </div>
+  );
+}
+
+export function DateField({
+  label,
+  value,
+  onChange,
+  required,
+  help,
+  error,
+  max,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  required?: boolean;
+  help?: string;
+  error?: string;
+  max?: string;
+}) {
+  const id = useId();
+  const errId = `${id}-err`;
+  const helpId = `${id}-help`;
+  const ref = useRef<HTMLInputElement>(null);
+
+  // Open the native date picker on a click ANYWHERE in the field (not just the calendar icon).
+  // `showPicker()` needs a user gesture; typing into the date segments still works alongside it.
+  const openPicker = () => {
+    const el = ref.current;
+    if (el && typeof el.showPicker === "function") {
+      try {
+        el.showPicker();
+      } catch {
+        /* showPicker can throw if the input isn't focusable/visible — ignore, native behaviour remains */
+      }
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <label htmlFor={id} style={labelStyle}>
+        {label}
+        {required && <Req />}
+      </label>
+      <span
+        onClick={openPicker}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "var(--white)",
+          border: `2px solid ${error ? "var(--severity-high)" : "var(--line)"}`,
+          borderRadius: "var(--radius-md)",
+          padding: "0 20px",
+          minHeight: 48,
+          cursor: "pointer",
+        }}
+      >
+        <input
+          ref={ref}
+          id={id}
+          type="date"
+          value={value}
+          required={required}
+          max={max}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errId : help ? helpId : undefined}
+          onChange={(e) => onChange(e.target.value)}
+          onClick={openPicker}
+          style={{
+            flex: 1,
+            width: "100%",
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            font: "var(--text-body)",
+            color: value ? "var(--ink)" : "var(--ink-faint)",
+            minHeight: 46,
+            cursor: "pointer",
+          }}
+        />
       </span>
       {help && !error && (
         <span id={helpId} style={helpStyle}>

@@ -2,7 +2,7 @@
 import React from "react";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
-import { SelectField, BooleanField } from "./fields";
+import { SelectField, BooleanField, DateField } from "./fields";
 import type { FormState } from "./state";
 
 // Intake screen (spec story 1). Collects the UserInput fields — rates are NOT asked (spec D12).
@@ -47,20 +47,18 @@ export function IntakeStep({
         />
 
         <div className="adig-stack-sm">
-          <Input
+          <DateField
             label="Billing period — from"
-            type="date"
             required
             value={form.periodFrom}
-            onChange={(e) => setField("periodFrom", e.target.value)}
+            onChange={(v) => setField("periodFrom", v)}
             error={errors.periodFrom}
           />
-          <Input
+          <DateField
             label="Billing period — to"
-            type="date"
             required
             value={form.periodTo}
-            onChange={(e) => setField("periodTo", e.target.value)}
+            onChange={(v) => setField("periodTo", v)}
             error={errors.periodTo}
           />
         </div>

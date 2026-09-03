@@ -41,6 +41,18 @@ export interface InstrumentFacts {
   amountBilled?: number;
   /** Overcharge estimate in rupees (from the calc engine). Interpolated into the prayer amount only. */
   overchargeEstimate?: number;
+  /**
+   * Pre-rendered, deterministic "Annexure A" — the slab-by-slab overcharge working
+   * (see instruments/annexure.ts). Appended verbatim; referenced from the body. When present the
+   * letter substantiates its figure instead of merely asserting it. Never LLM-derived.
+   */
+  overchargeAnnexure?: string;
+  /**
+   * The estimate caveat ("this is not a definitive legal figure…"). Shown on-screen with the annexure,
+   * but OMITTED from the submission copy — like the disclaimer, it is a hedge addressed to the citizen,
+   * not to the forum.
+   */
+  overchargeCaveat?: string;
   priorTierRef?: PriorTierFact;
 }
 
@@ -57,8 +69,14 @@ export interface AssembledInstrument {
   prayer: string;
   /** Shown on every instrument regardless of the badge. */
   disclaimer: string;
-  /** The full rendered document text (for DocumentPreview). */
+  /** The full rendered document text, incl. the self-help disclaimer + estimate caveat (for on-screen DocumentPreview). */
   body: string;
+  /**
+   * The letter as the citizen actually submits it: `body` MINUS the self-help disclaimer and the
+   * estimate caveat (citizen-facing hedges that don't belong in a government filing). Copy + download
+   * use this; the on-screen preview uses `body`.
+   */
+  bodyForSubmission: string;
 }
 
 /** Sensible fallbacks for missing facts. Known constants fill in; citizen-specific fields get a "[prompt]". */
@@ -125,33 +143,50 @@ export function assembleInstrument(
     : "[Describe, in your own words, what happened: when the bill arrived, how it compares with your " +
       "usual bills, and why you believe it is wrong.]";
 
-  const sections: string[] = [];
-  sections.push(t.title);
-  sections.push(`Date: ${interpolate("{{date}}", facts)}`);
-  sections.push(`To,\n${t.forum}`);
-  sections.push(`From,\n${interpolate(t.headerScaffold, facts)}`);
-  sections.push(`Subject: ${subject}`);
-  sections.push(t.salutation);
+  // Each section is tagged `submit`: true = part of the filed letter; false = on-screen-only hedge
+  // (the self-help disclaimer and the estimate caveat) that must not travel into a government filing.
+  const sections: { text: string; submit: boolean }[] = [];
+  const add = (text: string, submit = true) => sections.push({ text, submit });
+
+  add(t.title);
+  add(`Date: ${interpolate("{{date}}", facts)}`);
+  add(`To,\n${t.forum}`);
+  add(`From,\n${interpolate(t.headerScaffold, facts)}`);
+  add(`Subject: ${subject}`);
+  add(t.salutation);
   if (facts.priorTierRef) {
-    sections.push(priorTierBlock(facts.priorTierRef));
+    add(priorTierBlock(facts.priorTierRef));
   }
-  sections.push(`Statement of facts:\n${narrativeBlock}`);
-  sections.push(`Legal grounds:\n${t.legalBasis.map((g) => `- ${g}`).join("\n")}`);
-  sections.push(`Relief sought:\n${prayer}`);
+  add(`Statement of facts:\n${narrativeBlock}`);
+  add(`Legal grounds:\n${t.legalBasis.map((g) => `- ${g}`).join("\n")}`);
+  const hasAnnexure = !!facts.overchargeAnnexure && facts.overchargeAnnexure.trim().length > 0;
+  add(
+    hasAnnexure
+      ? `Relief sought:\n${prayer}\n\nThe detailed slab-by-slab working of the overcharge is set out at Annexure A below.`
+      : `Relief sought:\n${prayer}`
+  );
   if (t.payUnderProtest) {
-    sections.push(t.payUnderProtest);
+    add(t.payUnderProtest);
   }
-  sections.push(`Applicable timeline:\n${t.slaText}`);
+  add(`Applicable timeline:\n${t.slaText}`);
   if (t.fieldList && t.fieldList.length > 0) {
-    sections.push(
+    add(
       `This application follows the prescribed form; ensure it carries every item below:\n` +
         t.fieldList.map((f) => `  ${f}`).join("\n")
     );
   }
-  if (t.draftNote) {
-    sections.push(t.draftNote);
+  if (hasAnnexure) {
+    add(facts.overchargeAnnexure!.trim());
   }
-  sections.push(`—\n${t.disclaimer}`);
+  // Estimate caveat — display-only (goes with the annexure on-screen, not into the filing).
+  if (facts.overchargeCaveat && facts.overchargeCaveat.trim().length > 0) {
+    add(facts.overchargeCaveat.trim(), false);
+  }
+  if (t.draftNote) {
+    add(t.draftNote);
+  }
+  // Self-help disclaimer — display-only.
+  add(`—\n${t.disclaimer}`, false);
 
   return {
     instrument: t.instrument,
@@ -162,7 +197,8 @@ export function assembleInstrument(
     legalBasis: t.legalBasis,
     prayer,
     disclaimer: t.disclaimer,
-    body: sections.join("\n\n"),
+    body: sections.map((s) => s.text).join("\n\n"),
+    bodyForSubmission: sections.filter((s) => s.submit).map((s) => s.text).join("\n\n"),
   };
 }
 

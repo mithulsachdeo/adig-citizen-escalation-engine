@@ -104,3 +104,250 @@ h3 { font: var(--text-h3); }
   }
   nav, .mascot, .app-chrome, button { display: none !important; }
 }
+
+/* ---- Mascot motion (impeccable /animate) — all transform/opacity, GPU-cheap ---- */
+.adig-mascot {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  line-height: 0;
+}
+.adig-mascot__spark {
+  grid-area: 1 / 1;
+  width: 62%;
+  height: 62%;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--accent-yellow), transparent 68%);
+  filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  animation: adig-mascot-spark 7s ease-in-out infinite;
+}
+.adig-mascot__beat {
+  grid-area: 1 / 1;
+  display: inline-block;
+  transform-origin: 50% 90%;
+  z-index: 1;
+}
+.adig-mascot__img {
+  display: block;
+  transition: opacity 0.22s ease;
+  will-change: transform;
+}
+.adig-mascot__img.is-fading { opacity: 0; }
+.adig-mascot__img.is-enter { animation: adig-mascot-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.adig-mascot__img.is-idle { animation: adig-mascot-float 4s ease-in-out infinite; }
+.adig-mascot__beat.is-hop { animation: adig-mascot-hop 0.72s cubic-bezier(0.16, 1, 0.3, 1); }
+.adig-mascot__beat.is-tilt { animation: adig-mascot-tilt 0.72s ease-out; }
+
+@keyframes adig-mascot-enter {
+  0% { opacity: 0; transform: scale(0.9); }
+  70% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes adig-mascot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes adig-mascot-hop {
+  0% { transform: translateY(0); }
+  28% { transform: translateY(-14px); }
+  52% { transform: translateY(0); }
+  68% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+@keyframes adig-mascot-tilt {
+  0% { transform: rotate(0deg); }
+  40% { transform: rotate(2.5deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes adig-mascot-spark {
+  0%, 80%, 100% { opacity: 0; transform: scale(0.6); }
+  87% { opacity: 0.7; transform: scale(1); }
+  93% { opacity: 0.25; transform: scale(1.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adig-mascot__img, .adig-mascot__beat, .adig-mascot__spark { animation: none !important; }
+  .adig-mascot__img { transition: none; opacity: 1 !important; }
+  .adig-mascot__spark { display: none; }
+}
+
+/* ---- Intro curtain (session-gated brand reveal: bolt strikes → monogram charges → green wipe) ---- */
+.adig-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--canvas);
+  overflow: hidden;
+  cursor: pointer;
+}
+/* Repeat-in-session / reduced-motion: pre-paint script flags this, hiding the curtain before it flashes. */
+html[data-adig-intro="skip"] .adig-intro { display: none !important; }
+.adig-intro__mark {
+  width: 132px;
+  height: 132px;
+  animation: adig-intro-charge 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+.adig-intro__bolt {
+  position: absolute;
+  width: 62vmin;
+  height: 62vmin;
+  pointer-events: none;
+}
+.adig-intro__bolt path {
+  fill: none;
+  stroke: var(--accent-yellow);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 7px var(--accent-yellow));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: adig-intro-strike 480ms ease-out both;
+}
+.adig-intro__flash {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-yellow);
+  opacity: 0;
+  pointer-events: none;
+  animation: adig-intro-flash 900ms ease-out both;
+}
+.adig-intro__wipe {
+  position: absolute;
+  inset: 0;
+  background: var(--brand-green);
+  transform: translateY(100%);
+  animation: adig-intro-rise 400ms cubic-bezier(0.7, 0, 0.84, 0) both;
+  animation-delay: 900ms;
+}
+.adig-intro__skip {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2;
+  min-height: 40px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  font: var(--text-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+@keyframes adig-intro-strike { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes adig-intro-charge {
+  0% { opacity: 0; transform: scale(0.55); }
+  45% { opacity: 1; transform: scale(1.1); }
+  62% { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes adig-intro-flash {
+  0%, 38% { opacity: 0; }
+  50% { opacity: 0.5; }
+  70%, 100% { opacity: 0; }
+}
+@keyframes adig-intro-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* ---- Rigged SVG mascot — internal limb motion (composes with the .adig-mascot entrance/idle float) ---- */
+.rm { display: block; }
+.rm-torso,
+.rm-arm-l,
+.rm-arm-r { transform-box: view-box; }
+.rm-torso { transform-origin: 60px 112px; }
+.rm-arm-l { transform-origin: 40px 66px; }
+.rm-arm-r { transform-origin: 80px 66px; }
+.rm.rm--live .rm-torso { animation: rm-breathe 4s ease-in-out infinite; }
+.rm.rm--live .rm-arm-l { animation: rm-sway 3.4s ease-in-out infinite; }
+.rm.rm--live .rm-bolt { animation: rm-flicker 3.6s ease-in-out infinite; }
+.rm.rm--live[data-exp="happy"] .rm-arm-r,
+.rm.rm--live[data-exp="helping"] .rm-arm-r { animation: rm-wave 2.6s ease-in-out infinite; }
+@keyframes rm-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.035) translateY(-1px); } }
+@keyframes rm-sway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(7deg); } }
+@keyframes rm-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-16deg); } }
+@keyframes rm-flicker { 0%, 86%, 100% { opacity: 1; } 91% { opacity: 0.35; } 95% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .adig-intro__mark, .adig-intro__bolt path, .adig-intro__flash, .adig-intro__wipe { animation: none !important; }
+  .rm.rm--live .rm-torso, .rm.rm--live .rm-arm-l, .rm.rm--live .rm-arm-r, .rm.rm--live .rm-bolt { animation: none !important; }
+}
+
+/* ---- Frosted-glass sticky masthead ---- */
+.adig-masthead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  /* Fallback: semi-opaque cream so the wordmark stays legible where backdrop-filter isn't supported. */
+  background: rgba(247, 251, 237, 0.72);
+  box-shadow: 0 6px 20px -14px oklch(30% 0.02 100 / 0.4);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .adig-masthead {
+    background: rgba(247, 251, 237, 0.6);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+    backdrop-filter: blur(12px) saturate(1.1);
+  }
+}
+
+/* ---- Landing layout — use the horizontal space (impeccable redesign) ---- */
+/* Wider wrapper for the landing sections (the app flow still uses .adig-container). */
+.adig-wide {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+@media (min-width: 768px) {
+  .adig-wide { padding-inline: var(--space-6); }
+}
+
+/* Full-bleed brand-green hero band (design.md sanctions --brand-green as a hero fill). */
+.adig-hero { background: var(--brand-green); padding-block: var(--space-7); }
+.adig-hero__grid { display: grid; gap: var(--space-6); align-items: center; }
+@media (min-width: 900px) {
+  .adig-hero__grid { grid-template-columns: 1.05fr 0.95fr; gap: var(--space-7); }
+}
+
+/* Trust chip — replaces the (banned) hero eyebrow. */
+.adig-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--white); color: var(--ink);
+  border-radius: var(--radius-pill); padding: 7px 16px;
+  font: var(--text-small); font-weight: 600;
+}
+
+/* Product-peek sticker card (cream) seated inside the green hero — gives the mascot contrast. */
+.adig-peek {
+  background: var(--canvas-raised); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-raised); padding: var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-4); align-items: stretch;
+}
+
+/* Lightning Flow — zigzag path. Mobile: vertical stack. Desktop: 5 across, alternating up/down. */
+.adig-zig { position: relative; display: grid; gap: var(--space-4); }
+.adig-zig__line { display: none; }
+.adig-zig__step { position: relative; z-index: 1; }
+@media (min-width: 880px) {
+  .adig-zig { grid-template-columns: repeat(5, 1fr); gap: var(--space-4); align-items: start; padding-block: var(--space-6) var(--space-8); }
+  .adig-zig__step:nth-child(even) { transform: translateY(64px); }
+  .adig-zig__line { display: block; position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: visible; }
+}
+
+/* Compact step card for the zigzag. */
+.adig-step {
+  background: var(--white); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-card); border: 1px solid var(--line);
+}
+
+/* Reassurance — two columns on desktop. */
+.adig-reassure { display: grid; gap: var(--space-5); align-items: center; }
+@media (min-width: 768px) {
+  .adig-reassure { grid-template-columns: 0.8fr 1.2fr; gap: var(--space-7); }
+}

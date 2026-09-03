@@ -50,9 +50,11 @@ export function DocumentsStep({
   const [copied, setCopied] = useState(false);
   const needsPriorRef = result.error?.code === "missing_prior_tier_ref";
 
+  // Copy + download the SUBMISSION version — the filed letter without the citizen-facing self-help
+  // disclaimer or estimate caveat (those stay on-screen only). See assembleInstrument.bodyForSubmission.
   function copy() {
     if (!assembled) return;
-    navigator.clipboard?.writeText(assembled.body).then(
+    navigator.clipboard?.writeText(assembled.bodyForSubmission).then(
       () => {
         setCopied(true);
         window.setTimeout(() => setCopied(false), 2000);
@@ -63,7 +65,7 @@ export function DocumentsStep({
 
   function download() {
     if (!assembled) return;
-    const blob = new Blob([assembled.body], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([assembled.bodyForSubmission], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

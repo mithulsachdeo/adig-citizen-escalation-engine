@@ -1,19 +1,18 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import { CostBreakdown } from "@/components/CostBreakdown";
-import type { PipelineResult } from "@/engine/types";
+import { Mascot, type MascotExpression, type MascotReaction } from "@/components/Mascot";
+import type { CalculationResult, PipelineResult, SlabCharge } from "@/engine/types";
 import { inr } from "./format";
 
-// Results screen (spec stories 4–7). Order matters:
-//   1. When there is an overcharge, LEAD with the disconnection reassurance + the specific
-//      pay-under-protest rupee figure (fear is the #1 blocker — spec Further Notes).
-//   2. Then the honest diagnosis (incl. "this bill looks genuine" when nothing is wrong).
-//   3. Then the overcharge estimate with its caveat caption.
-//   4. Then the evidence checklist to gather before escalating.
+// Results screen (spec stories 4–7). Order (revised): the screen is titled "What we found", so it
+// LEADS with the diagnosis (the finding), then the disconnection reassurance immediately after (fear
+// is still addressed in the first screenful — spec D17), then the estimate WITH the full slab-by-slab
+// working (trust), then the evidence checklist.
 
 const DIAGNOSIS_TITLE: Record<string, string> = {
   slab_jump: "Slab-jump overcharge detected",
@@ -22,6 +21,97 @@ const DIAGNOSIS_TITLE: Record<string, string> = {
   legitimate: "This bill looks genuine",
   unsupported: "Not supported yet",
 };
+
+function bandLabel(s: SlabCharge): string {
+  return s.toUnit === null ? `${s.fromUnit}+` : `${s.fromUnit}–${s.toUnit}`;
+}
+
+const cellNum: React.CSSProperties = {
+  textAlign: "right",
+  whiteSpace: "nowrap",
+  fontVariantNumeric: "tabular-nums",
+  padding: "6px 0",
+};
+const cellLabel: React.CSSProperties = { textAlign: "left", padding: "6px 0" };
+const headCell: React.CSSProperties = {
+  font: "var(--text-small)",
+  fontWeight: 700,
+  color: "var(--ink-faint)",
+  textTransform: "uppercase",
+  letterSpacing: "0.04em",
+};
+
+function SlabTable({ title, rows, subtotal }: { title: string; rows: SlabCharge[]; subtotal: number }) {
+  return (
+    <div>
+      <p style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>{title}</p>
+      <table style={{ width: "100%", borderCollapse: "collapse", font: "var(--text-small)", color: "var(--ink-soft)" }}>
+        <thead>
+          <tr style={{ borderBottom: "1px solid var(--line)" }}>
+            <th style={{ ...cellLabel, ...headCell }}>Slab (units)</th>
+            <th style={{ ...cellNum, ...headCell }}>Units</th>
+            <th style={{ ...cellNum, ...headCell }}>₹/unit</th>
+            <th style={{ ...cellNum, ...headCell }}>Charge</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s) => (
+            <tr key={`${s.fromUnit}-${s.toUnit}`} style={{ borderBottom: "1px solid var(--line)" }}>
+              <td style={cellLabel}>{bandLabel(s)}</td>
+              <td style={cellNum}>{Math.round(s.units)}</td>
+              <td style={cellNum}>{s.rate.toFixed(2)}</td>
+              <td style={cellNum}>{inr(Math.round(s.charge))}</td>
+            </tr>
+          ))}
+          <tr>
+            <td style={{ ...cellLabel, fontWeight: 700, color: "var(--ink)" }} colSpan={3}>
+              Subtotal (energy charge)
+            </td>
+            <td style={{ ...cellNum, fontWeight: 700, color: "var(--ink)" }}>{inr(Math.round(subtotal))}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SlabWorking({ calc }: { calc: CalculationResult }) {
+  const totalUnits = Math.round(calc.actualBreakdown.reduce((s, r) => s + r.units, 0));
+  const months = calc.monthsInPeriod && calc.monthsInPeriod > 0 ? calc.monthsInPeriod : 1;
+  const perMonth = Math.round(totalUnits / months);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", marginTop: "var(--space-3)" }}>
+      <p style={{ font: "var(--text-small)", color: "var(--ink-soft)" }}>
+        Your <strong>{totalUnits} units</strong> over <strong>{months} equivalent month
+        {months === 1 ? "" : "s"}</strong> ≈ {perMonth} units/month, each month charged at the monthly slabs.
+      </p>
+      <SlabTable title="As billed — all units lumped into one period" rows={calc.actualBreakdown} subtotal={calc.actualEnergyCharge} />
+      <SlabTable
+        title="Lawful monthly-equivalent pro-rata (Reg. 16.1.1)"
+        rows={calc.lawfulBreakdown}
+        subtotal={calc.lawfulEnergyCharge}
+      />
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, paddingTop: 10, borderTop: "2px solid var(--ink)", font: "var(--text-h3)", color: "var(--ink)" }}>
+        <span>Difference = overcharge</span>
+        <span style={{ whiteSpace: "nowrap" }}>{inr(Math.round(calc.overcharge))}</span>
+      </div>
+    </div>
+  );
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      style={{ transition: "transform 0.18s ease", transform: open ? "rotate(180deg)" : "none" }}
+    >
+      <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function ResultsStep({
   result,
@@ -41,8 +131,8 @@ export function ResultsStep({
   const noPriceableData = calculation?.tableLabel === "outside verified tariff data";
   const partialCoverage = calculation?.outsideVerifiedTariff === true && !noPriceableData;
 
-  // The fair amount to pay under protest = the whole bill minus the disputed overcharge (spec:
-  // "pay the fair amount ... dispute the rest"). Only shown when the bill amount is known.
+  const [showWorking, setShowWorking] = useState(false);
+
   const fairAmount =
     typeof amountBilled === "number" && overcharge > 0
       ? Math.max(0, Math.round(amountBilled) - Math.round(overcharge))
@@ -50,9 +140,37 @@ export function ResultsStep({
 
   const title = DIAGNOSIS_TITLE[diagnosis.classification] ?? "Result";
 
+  // The mascot reacts to the verdict: relieved-happy when genuine, rallying-helping when overcharged.
+  const relieved = diagnosis.classification === "legitimate";
+  const rallying = actionable && overcharge > 0;
+  const mascotExpression: MascotExpression = relieved ? "happy" : rallying ? "helping" : "neutral";
+  const mascotReaction: MascotReaction = relieved ? "hop" : rallying ? "tilt" : "none";
+
+  const showWorkingToggle = !unsupported && !noPriceableData && calculation != null && overcharge > 0;
+
   return (
     <div className="adig-stack">
-      {/* 1. Reassurance + pay-under-protest figure — only when there is something to dispute. */}
+      {/* 1. The finding — diagnosis leads, mascot tucked beside the title. */}
+      <Card accent={actionable ? "coral" : "green"}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
+          <Mascot expression={mascotExpression} reaction={mascotReaction} size={60} />
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: actionable ? "var(--accent-coral)" : "var(--brand-green)" }} />
+              <span style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Diagnosis
+              </span>
+            </div>
+            <div style={{ font: "var(--text-h2)", color: "var(--ink)", marginTop: 4 }}>{title}</div>
+          </div>
+        </div>
+        <p>{diagnosis.summary}</p>
+        {diagnosis.rationale && (
+          <p style={{ marginTop: "var(--space-3)", color: "var(--ink-faint)" }}>{diagnosis.rationale}</p>
+        )}
+      </Card>
+
+      {/* 2. Reassurance + pay-under-protest figure — immediately after the finding, when there is an overcharge. */}
       {actionable && overcharge > 0 && (
         <Alert tone="info" title="Your power will not be cut off">
           You get at least 15 days&rsquo; written notice before any disconnection.{" "}
@@ -72,21 +190,7 @@ export function ResultsStep({
         </Alert>
       )}
 
-      {/* 2. Honest diagnosis. */}
-      <Card
-        eyebrow="Diagnosis"
-        title={title}
-        accent={actionable ? "coral" : "green"}
-      >
-        <p>{diagnosis.summary}</p>
-        {diagnosis.rationale && (
-          <p style={{ marginTop: "var(--space-3)", color: "var(--ink-faint)" }}>
-            {diagnosis.rationale}
-          </p>
-        )}
-      </Card>
-
-      {/* 3. The estimate (or an honest "can't compute" note). */}
+      {/* 3. The estimate + the full slab-by-slab working (trust). */}
       {unsupported ? (
         <Alert tone="warning" title="This tariff isn't supported yet">
           {calculation?.estimateCaveat}
@@ -108,6 +212,26 @@ export function ResultsStep({
               ]}
               caption={calculation.estimateCaveat}
             />
+
+            {showWorkingToggle && (
+              <div style={{ background: "var(--canvas-raised)", border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "var(--space-4) var(--space-5)" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowWorking((s) => !s)}
+                  aria-expanded={showWorking}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8, width: "100%",
+                    background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                    font: "var(--text-small)", fontWeight: 700, color: "var(--ink)", minHeight: 32,
+                  }}
+                >
+                  <Chevron open={showWorking} />
+                  {showWorking ? "Hide" : "See"} the full slab-by-slab working
+                </button>
+                {showWorking && <SlabWorking calc={calculation} />}
+              </div>
+            )}
+
             {partialCoverage && (
               <Alert tone="warning" title="Figure covers only part of the period">
                 Part of this billing period is outside our verified tariff data, so the estimate

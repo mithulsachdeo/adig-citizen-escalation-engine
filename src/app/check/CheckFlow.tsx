@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StepProgress } from "@/components/StepProgress";
 import { runVertical } from "@/engine/runVertical";
 import { msedclElectricitySpec } from "@/engine/verticals/msedcl-electricity/spec";
-import { assembleInstrument, INSTRUMENT_TEMPLATES } from "@/engine/instruments";
+import { assembleInstrument, INSTRUMENT_TEMPLATES, formatOverchargeAnnexure } from "@/engine/instruments";
 import type { InstrumentFacts } from "@/engine/instruments";
 import type { NarrativeInput } from "@/engine/narrative";
 import { ApiNarrativeGenerator } from "./narrativeClient";
@@ -106,6 +106,14 @@ export function CheckFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, narrativeSig, result.diagnosis.isActionable]);
 
+  // Deterministic calculation annexure — only when a real overcharge was computed (not
+  // unsupported / outside-coverage). It carries the slab-by-slab working into the letter (Annexure A).
+  const calc = result.calculation;
+  const overchargeAnnexure =
+    calc && calc.overcharge > 0 && !calc.unsupported && calc.tableLabel !== "outside verified tariff data"
+      ? formatOverchargeAnnexure(calc)
+      : undefined;
+
   const facts: InstrumentFacts = {
     date: formatDateLong(todayISO()),
     circle: input.circle,
@@ -113,6 +121,9 @@ export function CheckFlow() {
     unitsBilled: input.unitsBilled || undefined,
     amountBilled: input.amountBilled,
     overchargeEstimate: result.calculation?.overcharge,
+    overchargeAnnexure,
+    // Display-only hedge (kept on-screen with the annexure, stripped from the submission copy).
+    overchargeCaveat: overchargeAnnexure ? calc?.estimateCaveat : undefined,
     priorTierRef: input.priorTierRef,
   };
 
