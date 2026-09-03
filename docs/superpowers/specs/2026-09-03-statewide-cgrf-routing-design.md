@@ -1,7 +1,13 @@
 # Statewide CGRF routing + circle picker — design
 
 **Date:** 2026-09-03
-**Status:** proposed (awaiting sign-off)
+**Status:** implemented 2026-09-03 on `feat/marathi-i18n` (commit e91c2b4). Two owner-approved deviations
+from this spec: (1) **contacts omitted** — the 11 forums ship with address only, not the 2024-list
+emails (§Data proposed adding them); the address alone is enough to file. (2) **Vasai** — the 2024-PDF
+building line ("Bldg. No. 18, Flat No. 5, MSEB Colony, Navghar…") is retained but a second source says
+"Deepshree Building"; kept `verifyAtSource` with that conflict noted in code. All 11 addresses were
+re-verified against the live official source on 2026-09-03 (10/11 exact; Vasai as noted). JIT capture
+IS built (spec §4).
 **Branch:** to be created off `master` (after the i18n branch is merged/parked)
 **Source of truth:** MSEDCL official *CGRF Addresses (English), Feb 2024* —
 https://www.mahadiscom.in/consumer/wp-content/uploads/2024/02/CGRF-Addresses_English.pdf
