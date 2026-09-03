@@ -478,7 +478,7 @@ html[data-adig-intro="skip"] .adig-intro { display: none !important; }
   vertical-align: middle;
 }
 /* Muted "not on your bill" tag for fields with no bill location. */
-.adig-fieldnote { font-weight: 500; color: var(--ink-faint); }
+.adig-fieldnote { font-weight: 500; color: var(--ink-faint); font-style: italic; font-size: 0.85em; }
 
 /* ---- Landing layout — use the horizontal space (impeccable redesign) ---- */
 /* Wider wrapper for the landing sections (the app flow still uses .adig-container). */
