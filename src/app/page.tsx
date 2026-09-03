@@ -37,6 +37,20 @@ export default function Home() {
               Adig checks whether you were overcharged, estimates by how much, and generates the exact
               complaint to get it corrected — for free, with nothing stored.
             </p>
+            {/* Sanskrit benediction (the brand meaning: "steadfast / unshakeable"). */}
+            <p style={{ marginTop: "var(--space-4)", maxWidth: 520, lineHeight: 1.5 }}>
+              <span lang="sa" style={{ font: "var(--text-lead)", fontWeight: 600 }}>
+                भवतः अधिकारेषु स्थिराः भवन्तु
+              </span>
+              <br />
+              <span style={{ font: "var(--text-small)", fontStyle: "italic", color: "var(--ink-faint)" }}>
+                bhavatah adhikareshu sthirah bhavantu
+              </span>
+              <br />
+              <span style={{ font: "var(--text-small)", color: "var(--ink-soft)" }}>
+                “May you be steadfast in your rights.”
+              </span>
+            </p>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-4)", marginTop: "var(--space-5)" }}>
               <Link
                 href="/check"

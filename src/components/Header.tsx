@@ -22,6 +22,7 @@ export function Header() {
               अडिग
             </span>
           </span>
+          {/* Tagline = ADIG backronym; the four leading capitals carry the brand colour. */}
           <span
             style={{
               marginTop: 4,
@@ -29,10 +30,17 @@ export function Header() {
               fontWeight: 500,
               letterSpacing: "0.04em",
               color: "var(--ink-faint)",
-              whiteSpace: "nowrap",
             }}
           >
-            Assess · Dispute · Inform · Get Redress
+            {(() => {
+              const em = { fontWeight: 700, color: "var(--brand-green-ink)" } as const;
+              return (
+                <>
+                  <span style={em}>A</span>ssistance for <span style={em}>D</span>isputes with{" "}
+                  <span style={em}>I</span>nstitutions &amp; <span style={em}>G</span>overnment
+                </>
+              );
+            })()}
           </span>
         </span>
         </Link>
