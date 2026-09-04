@@ -34,7 +34,7 @@ export function Button({
   type?: "button" | "submit";
   fullWidth?: boolean;
 }) {
-  const { handleClick, bolt } = useLightningClick({ onClick, size, disabled });
+  const { handleClick, bolt, flash, glowClass } = useLightningClick({ onClick, size, disabled });
 
   const sizes: Record<Size, { pad: string; font: string }> = {
     sm: { pad: "10px 20px 10px 14px", font: "var(--text-small)" },
@@ -53,6 +53,7 @@ export function Button({
       type={type}
       onClick={handleClick}
       disabled={disabled}
+      className={`adig-btn-squish ${glowClass}`.trim()}
       style={{
         position: "relative",
         display: fullWidth ? "flex" : "inline-flex",
@@ -70,12 +71,20 @@ export function Button({
         ...v,
       }}
     >
+      {flash}
       {bolt}
       <span
         aria-hidden="true"
-        style={{ width: 10, height: 10, borderRadius: "50%", background: CIRCLE[circle], flexShrink: 0 }}
+        style={{
+          position: "relative",
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          background: CIRCLE[circle],
+          flexShrink: 0,
+        }}
       />
-      {children}
+      <span style={{ position: "relative" }}>{children}</span>
     </button>
   );
 }

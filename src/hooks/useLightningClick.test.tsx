@@ -55,6 +55,8 @@ describe("useLightningClick and BoltFlash", () => {
       expect(originalOnClick).not.toHaveBeenCalled();
       expect(controller.getNonce()).toBe(0);
       expect(controller.getBolt()).toBeNull();
+      expect(controller.getFlash()).toBeNull();
+      expect(controller.getGlowClass()).toBe("");
     });
 
     it("fires onClick when used inside the React hook during component render", () => {
@@ -65,7 +67,8 @@ describe("useLightningClick and BoltFlash", () => {
         const result = useLightningClick({ onClick: originalOnClick });
         capturedResult = result;
         return (
-          <button type="button" onClick={result.handleClick}>
+          <button type="button" onClick={result.handleClick} className={result.glowClass}>
+            {result.flash}
             {result.bolt}
             Click me
           </button>
@@ -292,6 +295,80 @@ describe("useLightningClick and BoltFlash", () => {
       expect(html).toContain("left:72px");
       expect(html).toContain("top:24px");
       expect(html).toContain("transform:translate(-50%, -50%)");
+    });
+  });
+
+  describe("5. Tactile squish, flash overlay, and glow pulse", () => {
+    it("returns null flash and empty glowClass before click", () => {
+      const controller = createLightningClickController();
+      expect(controller.getFlash()).toBeNull();
+      expect(controller.getGlowClass()).toBe("");
+    });
+
+    it("renders flash overlay and alternates glow pulse classes on rapid clicks", () => {
+      const controller = createLightningClickController();
+
+      // Click 1
+      controller.handleClick({} as React.MouseEvent<HTMLButtonElement>);
+      expect(controller.getGlowClass()).toBe("adig-glow-pulse");
+
+      const flash1 = controller.getFlash();
+      expect(flash1).not.toBeNull();
+      expect(flash1?.key).toBe("1");
+      const flash1Html = renderToString(flash1!);
+      expect(flash1Html).toContain("adig-flash");
+      expect(flash1Html).toContain('aria-hidden="true"');
+
+      // Click 2 (rapid re-click)
+      controller.handleClick({} as React.MouseEvent<HTMLButtonElement>);
+      expect(controller.getGlowClass()).toBe("adig-glow-pulse-alt");
+      const flash2 = controller.getFlash();
+      expect(flash2?.key).toBe("2");
+
+      // Click 3
+      controller.trigger();
+      expect(controller.getGlowClass()).toBe("adig-glow-pulse");
+      expect(controller.getFlash()?.key).toBe("3");
+    });
+
+    it("suppresses glow class and applies static flash under reduced motion", () => {
+      const matchMediaMock = vi.fn().mockImplementation((query: string) => ({
+        matches: query === "(prefers-reduced-motion: reduce)",
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+      // @ts-expect-error mock window
+      global.window = { matchMedia: matchMediaMock };
+
+      const controller = createLightningClickController();
+      controller.handleClick({} as React.MouseEvent<HTMLButtonElement>);
+
+      expect(controller.getGlowClass()).toBe(""); // glow suppressed in reduced motion
+
+      const flash = controller.getFlash();
+      expect(flash).not.toBeNull();
+      const flashHtml = renderToString(flash!);
+      expect(flashHtml).toContain("adig-flash--static");
+    });
+
+    it("Button component renders adig-btn-squish class and preserves relative label layering", () => {
+      const html = renderToString(
+        <Button size="md" variant="primary">
+          Submit Claim
+        </Button>
+      );
+
+      // Button has tactile squish class
+      expect(html).toContain("adig-btn-squish");
+      // Button has position: relative
+      expect(html).toContain("position:relative");
+      // Label is rendered with position: relative so it paints above the flash overlay
+      expect(html).toContain('style="position:relative">Submit Claim</span>');
     });
   });
 

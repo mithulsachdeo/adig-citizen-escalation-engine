@@ -17,6 +17,8 @@ export interface UseLightningClickResult {
   isReducedMotion: boolean;
   position?: BoltPosition;
   bolt: React.ReactNode;
+  flash: React.ReactNode;
+  glowClass: string;
 }
 
 export function checkReducedMotion(): boolean {
@@ -103,6 +105,24 @@ export function createLightningClickController({
     ) : null;
   };
 
+  const getFlash = () => {
+    return nonce > 0 ? (
+      <span
+        key={nonce}
+        className={`adig-flash${isReducedMotion ? " adig-flash--static" : ""}`}
+        aria-hidden="true"
+      />
+    ) : null;
+  };
+
+  const getGlowClass = () => {
+    return nonce > 0 && !isReducedMotion
+      ? nonce % 2 === 1
+        ? "adig-glow-pulse"
+        : "adig-glow-pulse-alt"
+      : "";
+  };
+
   return {
     handleClick,
     trigger,
@@ -110,6 +130,8 @@ export function createLightningClickController({
     getIsReducedMotion: () => isReducedMotion,
     getPosition: () => position,
     getBolt,
+    getFlash,
+    getGlowClass,
   };
 }
 
@@ -162,6 +184,22 @@ export function useLightningClick({
       />
     ) : null;
 
+  const flash =
+    nonce > 0 ? (
+      <span
+        key={nonce}
+        className={`adig-flash${isReducedMotion ? " adig-flash--static" : ""}`}
+        aria-hidden="true"
+      />
+    ) : null;
+
+  const glowClass =
+    nonce > 0 && !isReducedMotion
+      ? nonce % 2 === 1
+        ? "adig-glow-pulse"
+        : "adig-glow-pulse-alt"
+      : "";
+
   return {
     handleClick,
     trigger,
@@ -169,6 +207,8 @@ export function useLightningClick({
     isReducedMotion,
     position,
     bolt,
+    flash,
+    glowClass,
   };
 }
 
