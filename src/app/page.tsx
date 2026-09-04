@@ -40,21 +40,6 @@ export default function Home() {
             <p style={{ font: "var(--text-lead)", color: "var(--ink)", maxWidth: 520 }}>
               {t("landing.lead")}
             </p>
-            {/* Sanskrit benediction (the brand meaning: "steadfast / unshakeable"). Stays Sanskrit in both
-                languages — it is already Devanagari and universal. */}
-            <p style={{ marginTop: "var(--space-4)", maxWidth: 520, lineHeight: 1.5 }}>
-              <span lang="sa" style={{ font: "var(--text-lead)", fontWeight: 600 }}>
-                भवतः अधिकारेषु स्थिराः भवन्तु
-              </span>
-              <br />
-              <span style={{ font: "var(--text-small)", fontStyle: "italic", color: "var(--ink-faint)" }}>
-                bhavatah adhikareshu sthirah bhavantu
-              </span>
-              <br />
-              <span style={{ font: "var(--text-small)", color: "var(--ink-soft)" }}>
-                “May you be steadfast in your rights.”
-              </span>
-            </p>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-4)", marginTop: "var(--space-5)" }}>
               <Link
                 href="/check"
@@ -91,6 +76,36 @@ export default function Home() {
               caption={t("landing.sampleCaption")}
             />
           </div>
+        </div>
+      </section>
+
+      {/* ---- Benediction: a reverent full-bleed moment after the hero. The brand meaning
+           ("steadfast / unshakeable") set as an inscription on ink, with a faint charged glow and a
+           single gold spark (the A-bolt motif). Stays Sanskrit in both languages (Devanagari is universal). ---- */}
+      <section style={{ position: "relative", background: "var(--ink)", paddingBlock: "clamp(3.5rem, 9vw, 6rem)", overflow: "hidden" }}>
+        {/* faint charged glow — the electricity motif, behind the text */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(55% 65% at 50% 42%, rgba(142, 212, 98, 0.16), transparent 70%)",
+          }}
+        />
+        <div className="adig-wide" style={{ position: "relative", textAlign: "center" }}>
+          {/* a single spark — a short gold rule for the brand bolt (drawn, not a glyph) */}
+          <span
+            aria-hidden="true"
+            style={{ display: "inline-block", width: 40, height: 3, borderRadius: "var(--radius-pill)", background: "var(--accent-yellow)", marginBottom: "var(--space-5)" }}
+          />
+          <p lang="sa" style={{ font: "var(--text-h1)", lineHeight: 1.35, fontWeight: 600, color: "var(--canvas)", maxWidth: "18ch", marginInline: "auto" }}>
+            भवतः अधिकारेषु स्थिराः भवन्तु
+          </p>
+          <p style={{ font: "var(--text-small)", fontStyle: "italic", letterSpacing: "0.02em", color: "var(--canvas)", opacity: 0.6, marginTop: "var(--space-3)" }}>
+            bhavatah adhikareshu sthirah bhavantu
+          </p>
+          <p style={{ font: "var(--text-lead)", color: "var(--canvas)", opacity: 0.85, marginTop: "var(--space-2)" }}>
+            “May you be steadfast in your rights.”
+          </p>
         </div>
       </section>
 
