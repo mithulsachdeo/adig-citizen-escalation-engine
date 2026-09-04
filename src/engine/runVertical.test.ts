@@ -12,6 +12,8 @@ function actionable(overrides: Partial<UserInput> = {}): UserInput {
     unitsBilled: 150,
     periodFrom: "2026-04-01",
     periodTo: "2026-09-30",
+    amountBilled: 1500,
+    energyChargeBilled: 936,
     readingType: "actual",
     category: "LT-I-B-residential",
     ...overrides,

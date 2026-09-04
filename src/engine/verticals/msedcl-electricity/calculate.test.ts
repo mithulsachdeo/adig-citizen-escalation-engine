@@ -12,6 +12,8 @@ function input(overrides: Partial<UserInput>): UserInput {
     unitsBilled: 0,
     periodFrom: "2026-05-01",
     periodTo: "2026-05-31",
+    amountBilled: 1000,
+    energyChargeBilled: 0,
     readingType: "actual",
     category: "LT-I-B-residential",
     ...overrides,
@@ -23,10 +25,14 @@ test("slab-jump: 150 units lumped as a ~6-month bill yields a positive overcharg
   // Lawful  = 6 × (25 × 3.96)                     = 6 × 99   = 594
   // Actual  = 100×3.96 + 50×10.80 (lumped 150)    = 396+540  = 936
   // Overcharge (energy-charge only)                          = 342
-  const r = calculate(input({ unitsBilled: 150, periodFrom: "2026-04-01", periodTo: "2026-09-30" }));
+  const r = calculate(
+    input({ unitsBilled: 150, periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 936 })
+  );
 
   expect(r.monthsInPeriod).toBe(6);
   expect(r.actualEnergyCharge).toBe(936);
+  expect(r.estimatedAsBilledEnergyCharge).toBe(936);
+  expect(r.energyChargeMismatch).toBe(false);
   expect(r.lawfulEnergyCharge).toBe(594);
   expect(r.overcharge).toBe(342);
   expect(r.tableLabel).toBe("FY2026-27");
@@ -45,9 +51,37 @@ test("slab-jump: 150 units lumped as a ~6-month bill yields a positive overcharg
   ]);
 });
 
+test("overcharge is computed directly from citizen's energyChargeBilled rather than ideal simulation", () => {
+  // Citizen was billed 1100 energy charge instead of ideal 936
+  const r = calculate(
+    input({ unitsBilled: 150, periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 1100 })
+  );
+  expect(r.actualEnergyCharge).toBe(1100);
+  expect(r.estimatedAsBilledEnergyCharge).toBe(936);
+  expect(r.lawfulEnergyCharge).toBe(594);
+  expect(r.overcharge).toBe(506); // 1100 - 594
+});
+
+test("energyChargeMismatch fires when deviation exceeds 20% and stays false within 20%", () => {
+  // 150 units -> estimated 936
+  // Deviation > 20%: 1150 vs 936 is (1150-936)/936 = 22.8%
+  const high = calculate(
+    input({ unitsBilled: 150, periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 1150 })
+  );
+  expect(high.energyChargeMismatch).toBe(true);
+
+  // Deviation <= 20%: 1000 vs 936 is (1000-936)/936 = 6.8%
+  const ok = calculate(
+    input({ unitsBilled: 150, periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 1000 })
+  );
+  expect(ok.energyChargeMismatch).toBe(false);
+});
+
 test("normal ~30-day Actual single-month bill → overcharge 0", () => {
   // 250 units in one actual month: lumped == pro-rata (months = 1), so no distortion.
-  const r = calculate(input({ unitsBilled: 250, periodFrom: "2026-05-01", periodTo: "2026-05-31" }));
+  const r = calculate(
+    input({ unitsBilled: 250, periodFrom: "2026-05-01", periodTo: "2026-05-31", energyChargeBilled: 2016 })
+  );
   expect(r.monthsInPeriod).toBe(1);
   expect(r.actualEnergyCharge).toBe(r.lawfulEnergyCharge);
   expect(r.overcharge).toBe(0);
@@ -55,7 +89,9 @@ test("normal ~30-day Actual single-month bill → overcharge 0", () => {
 
 test("high-usage but Actual single-month bill → overcharge 0 (legitimate, not slab-jump)", () => {
   // 700 units is high, but a genuine single-month actual read is lawful — no pro-rata benefit.
-  const r = calculate(input({ unitsBilled: 700, periodFrom: "2026-06-01", periodTo: "2026-06-30" }));
+  const r = calculate(
+    input({ unitsBilled: 700, periodFrom: "2026-06-01", periodTo: "2026-06-30", energyChargeBilled: 7236 })
+  );
   expect(r.monthsInPeriod).toBe(1);
   expect(r.overcharge).toBe(0);
 });
@@ -66,7 +102,9 @@ test("slab-boundary: 600 units over ~6 months exercises all four slabs on the lu
   // Actual  = 100×3.96 + 200×10.80 + 200×15.03 + 100×17.53 (lumped 600)
   //         = 396 + 2160 + 3006 + 1753                                 = 7315
   // Overcharge                                                          = 4939
-  const r = calculate(input({ unitsBilled: 600, periodFrom: "2026-04-01", periodTo: "2026-09-30" }));
+  const r = calculate(
+    input({ unitsBilled: 600, periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 7315 })
+  );
   expect(r.monthsInPeriod).toBe(6);
   expect(r.lawfulEnergyCharge).toBe(2376);
   expect(r.actualEnergyCharge).toBe(7315);

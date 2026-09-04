@@ -18,6 +18,8 @@ const VALID: Partial<FormState> = {
   unitsBilled: "150",
   periodFrom: "2026-04-01",
   periodTo: "2026-09-30",
+  amountBilled: "1500",
+  energyChargeBilled: "936",
   readingType: "actual",
   category: "LT-I-B-residential",
 };
@@ -31,6 +33,8 @@ test("validateIntake flags missing required fields", () => {
   expect(errors.unitsBilled).toBeTruthy();
   expect(errors.periodFrom).toBeTruthy();
   expect(errors.periodTo).toBeTruthy();
+  expect(errors.amountBilled).toBeTruthy();
+  expect(errors.energyChargeBilled).toBeTruthy();
   expect(errors.readingType).toBeTruthy();
   expect(errors.category).toBeUndefined(); // EMPTY_FORM pre-selects the supported category
 });
@@ -41,6 +45,15 @@ test("validateIntake rejects zero / non-positive units", () => {
   expect(validateIntake(form({ ...VALID, unitsBilled: "abc" })).unitsBilled).toBeTruthy();
 });
 
+test("validateIntake rejects zero / non-positive amountBilled and energyChargeBilled", () => {
+  expect(validateIntake(form({ ...VALID, amountBilled: "0" })).amountBilled).toBeTruthy();
+  expect(validateIntake(form({ ...VALID, amountBilled: "-100" })).amountBilled).toBeTruthy();
+  expect(validateIntake(form({ ...VALID, amountBilled: "abc" })).amountBilled).toBeTruthy();
+  expect(validateIntake(form({ ...VALID, energyChargeBilled: "0" })).energyChargeBilled).toBeTruthy();
+  expect(validateIntake(form({ ...VALID, energyChargeBilled: "-50" })).energyChargeBilled).toBeTruthy();
+  expect(validateIntake(form({ ...VALID, energyChargeBilled: "xyz" })).energyChargeBilled).toBeTruthy();
+});
+
 test("validateIntake rejects an end date before the start date", () => {
   expect(
     validateIntake(form({ ...VALID, periodFrom: "2026-09-30", periodTo: "2026-04-01" })).periodTo
@@ -49,11 +62,12 @@ test("validateIntake rejects an end date before the start date", () => {
 
 test("buildUserInput maps strings to typed UserInput and collapses blanks to undefined", () => {
   const input = buildUserInput(
-    form({ ...VALID, amountBilled: "", circle: "  ", meterType: "", priorMonthlyAvgUnits: "" })
+    form({ ...VALID, circle: "  ", meterType: "", priorMonthlyAvgUnits: "" })
   );
   expect(input.unitsBilled).toBe(150);
   expect(input.readingType).toBe("actual");
-  expect(input.amountBilled).toBeUndefined();
+  expect(input.amountBilled).toBe(1500);
+  expect(input.energyChargeBilled).toBe(936);
   expect(input.circle).toBeUndefined();
   expect(input.meterType).toBeUndefined();
   expect(input.priorMonthlyAvgUnits).toBeUndefined();
@@ -65,6 +79,7 @@ test("buildUserInput parses optional numbers and the meter/reading enums", () =>
     form({
       ...VALID,
       amountBilled: "4200",
+      energyChargeBilled: "2800",
       readingType: "estimated",
       meterType: "smart",
       priorMonthlyAvgUnits: "80",
@@ -72,6 +87,7 @@ test("buildUserInput parses optional numbers and the meter/reading enums", () =>
     })
   );
   expect(input.amountBilled).toBe(4200);
+  expect(input.energyChargeBilled).toBe(2800);
   expect(input.readingType).toBe("estimated");
   expect(input.meterType).toBe("smart");
   expect(input.priorMonthlyAvgUnits).toBe(80);

@@ -78,10 +78,25 @@ export function IntakeStep({
           label={<><FieldNum n={3} />{t("intake.amountLabel")}</>}
           type="number"
           inputMode="numeric"
+          required
           value={form.amountBilled}
           onChange={(e) => setField("amountBilled", e.target.value)}
           unit="₹"
           placeholder={t("intake.amountPlaceholder")}
+          error={errors.amountBilled}
+        />
+
+        <Input
+          label={t("intake.energyChargeLabel")}
+          type="number"
+          inputMode="numeric"
+          required
+          value={form.energyChargeBilled}
+          onChange={(e) => setField("energyChargeBilled", e.target.value)}
+          unit="₹"
+          placeholder={t("intake.energyChargePlaceholder")}
+          help={t("intake.energyChargeHelp")}
+          error={errors.energyChargeBilled}
         />
 
         <SelectField

@@ -52,7 +52,8 @@ export interface UserInput {
   unitsBilled: number;
   periodFrom: string;
   periodTo: string;
-  amountBilled?: number;
+  amountBilled: number;
+  energyChargeBilled: number;
   readingType: ReadingType;
   category: string;
   circle?: string;
@@ -107,7 +108,7 @@ export interface SlabCharge {
  * Supply Code 2021 Reg 16.1.1 — never a definitive legal figure (`estimateCaveat` carries that text).
  */
 export interface CalculationResult {
-  /** Energy charge as actually billed (lumped into one period). */
+  /** Energy charge as actually billed (from citizen's bill). */
   actualEnergyCharge: number;
   /** Lawful monthly-equivalent pro-rata energy charge. */
   lawfulEnergyCharge: number;
@@ -121,6 +122,10 @@ export interface CalculationResult {
   estimateCaveat: string;
   /** Equivalent months the period spans (accumulated units ÷ months). */
   monthsInPeriod?: number;
+  /** Retained internal telescopic-slab calculation for sanity checking. */
+  estimatedAsBilledEnergyCharge?: number;
+  /** True when actual billed energy charge deviates > 20% from estimated telescopic charge. */
+  energyChargeMismatch?: boolean;
   /** True if part of the period predates the tariff coverage boundary and was not computed. */
   outsideVerifiedTariff?: boolean;
   /**

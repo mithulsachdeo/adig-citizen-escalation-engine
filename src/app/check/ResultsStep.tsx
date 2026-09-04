@@ -197,6 +197,12 @@ export function ResultsStep({
       ) : (
         calculation && (
           <div className="adig-stack-sm">
+            {calculation.energyChargeMismatch && (
+              <Alert tone="warning" title={t("results.mismatchTitle")}>
+                {t("results.mismatchBody")}
+              </Alert>
+            )}
+
             <CostBreakdown
               label={overcharge > 0 ? t("results.costLikely") : t("results.costOvercharge")}
               total={Math.round(overcharge)}

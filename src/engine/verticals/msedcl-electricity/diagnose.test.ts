@@ -11,6 +11,8 @@ function input(overrides: Partial<UserInput>): UserInput {
     unitsBilled: 0,
     periodFrom: "2026-05-01",
     periodTo: "2026-05-31",
+    amountBilled: 1000,
+    energyChargeBilled: 0,
     readingType: "actual",
     category: "LT-I-B-residential",
     ...overrides,
@@ -18,7 +20,7 @@ function input(overrides: Partial<UserInput>): UserInput {
 }
 
 /** A long accumulation period with a real positive overcharge. */
-const sixMonth = { periodFrom: "2026-04-01", periodTo: "2026-09-30" } as const;
+const sixMonth = { periodFrom: "2026-04-01", periodTo: "2026-09-30", energyChargeBilled: 936 } as const;
 
 test("long actual accumulation period with positive overcharge → slab_jump (actionable)", () => {
   const r = diagnose(input({ unitsBilled: 150, ...sixMonth }));

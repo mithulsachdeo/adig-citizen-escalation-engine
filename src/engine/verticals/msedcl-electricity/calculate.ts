@@ -160,8 +160,18 @@ export const calculate: CalculateFn = (input: UserInput): CalculationResult => {
     : priceableVersions[priceableVersions.length - 1];
 
   const actualBreakdown = telescopic(unitsBilled, actualVersion.slabs);
-  const actualEnergyCharge = roundRupee(sumCharge(actualBreakdown));
+  const estimatedAsBilledEnergyCharge = roundRupee(sumCharge(actualBreakdown));
+  const actualEnergyCharge =
+    typeof input.energyChargeBilled === "number" && input.energyChargeBilled > 0
+      ? input.energyChargeBilled
+      : estimatedAsBilledEnergyCharge;
   const lawfulEnergyCharge = roundRupee(lawful);
+
+  const mismatchRatio =
+    estimatedAsBilledEnergyCharge > 0
+      ? Math.abs(actualEnergyCharge - estimatedAsBilledEnergyCharge) / estimatedAsBilledEnergyCharge
+      : 0;
+  const energyChargeMismatch = mismatchRatio > 0.20;
 
   const lawfulBreakdown = [...lawfulByBand.values()].sort((a, b) => a.fromUnit - b.fromUnit);
   const tableLabel = [...new Set(priceableVersions.map((v) => v.label))].join(" / ");
@@ -175,6 +185,8 @@ export const calculate: CalculateFn = (input: UserInput): CalculationResult => {
     tableLabel,
     estimateCaveat: ESTIMATE_CAVEAT,
     monthsInPeriod: months,
+    estimatedAsBilledEnergyCharge,
+    energyChargeMismatch,
     // Part of the period fell before the coverage boundary or in a draft window — surfaced so the UI
     // can warn the figure covers only the priceable months.
     outsideVerifiedTariff: anyUnpriceable || undefined,

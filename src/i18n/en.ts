@@ -102,7 +102,10 @@ export const en = {
     periodFrom: "Billing period — from",
     periodTo: "Billing period — to",
     amountLabel: "Amount billed (Rs)",
-    amountPlaceholder: "Optional, but lets us show the fair amount to pay",
+    amountPlaceholder: "Total bill amount from your bill (e.g. 1500)",
+    energyChargeLabel: "Energy charges shown on your bill (Rs)",
+    energyChargePlaceholder: "From your bill (e.g. 950)",
+    energyChargeHelp: "Look for the 'Energy Charges' line item under billing details on your bill.",
     readingLabel: "Reading type",
     readingHelp: "On the bill, usually shown near the meter reading.",
     readingActual: "Actual",
@@ -185,6 +188,9 @@ export const en = {
     outsideTitle: "Outside our verified tariff data",
     outsideBody:
       "This billing period falls outside the tariff data we have verified, so we cannot compute a reliable figure. Adig only shows numbers it can stand behind.",
+    mismatchTitle: "Energy charge check",
+    mismatchBody:
+      "The energy charge you entered differs significantly from what the tariff slabs calculate for these units. Please double-check your bill's 'Energy Charges' line.",
     costLikely: "Likely overcharge",
     costOvercharge: "Overcharge",
     energyBilled: "Energy charge — as billed",

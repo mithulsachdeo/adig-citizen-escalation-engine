@@ -33,7 +33,7 @@ const sample = {
 test("save then load round-trips the progress and stamps version + savedAt", () => {
   saveProgress(sample);
   const loaded = loadProgress();
-  expect(loaded?.version).toBe(1);
+  expect(loaded?.version).toBe(2);
   expect(loaded?.form.unitsBilled).toBe("600");
   expect(loaded?.stage).toBe("icrs_ignored");
   expect(loaded?.priorRef.referenceNo).toBe("ICRS/2026/12345");

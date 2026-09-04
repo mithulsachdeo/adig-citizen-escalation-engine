@@ -170,7 +170,13 @@ export function CheckFlow() {
     setForm(resumable.form);
     setStage(resumable.stage);
     setPriorRef(resumable.priorRef);
-    setScreen(resumable.screen);
+    const found = validateIntake(resumable.form);
+    if (Object.keys(found).length > 0) {
+      setErrors(found);
+      setScreen("intake");
+    } else {
+      setScreen(resumable.screen);
+    }
     setResumable(null);
   }
 

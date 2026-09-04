@@ -38,7 +38,14 @@ const intake: IntakeField[] = [
   { name: "unitsBilled", label: "Units billed (kWh)", type: "number", required: true },
   { name: "periodFrom", label: "Billing period — from", type: "date", required: true },
   { name: "periodTo", label: "Billing period — to", type: "date", required: true },
-  { name: "amountBilled", label: "Amount billed (Rs)", type: "number", required: false },
+  { name: "amountBilled", label: "Amount billed (Rs)", type: "number", required: true },
+  {
+    name: "energyChargeBilled",
+    label: "Energy charges shown on your bill (Rs)",
+    type: "number",
+    required: true,
+    help: "Look for the 'Energy Charges' line item under billing details on your bill.",
+  },
   {
     name: "readingType",
     label: "Reading type",

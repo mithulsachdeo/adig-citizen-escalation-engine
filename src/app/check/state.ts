@@ -13,6 +13,7 @@ export interface FormState {
   periodFrom: string;
   periodTo: string;
   amountBilled: string;
+  energyChargeBilled: string;
   readingType: string;
   category: string;
   circle: string;
@@ -28,6 +29,7 @@ export const EMPTY_FORM: FormState = {
   periodFrom: "",
   periodTo: "",
   amountBilled: "",
+  energyChargeBilled: "",
   readingType: "",
   category: "LT-I-B-residential", // the only supported category today; pre-selected
   circle: "",
@@ -56,7 +58,8 @@ function numOrUndefined(s: string): number | undefined {
 /**
  * Map the raw form (+ the later-collected stage / prior-tier ref) into the engine's `UserInput`.
  * Missing optional numbers become `undefined` so the engine's `?? default` logic behaves; the
- * required `unitsBilled` falls back to 0 (validation blocks submission before that matters).
+ * required `unitsBilled`, `amountBilled` and `energyChargeBilled` fall back to 0 (validation blocks
+ * submission before that matters).
  */
 export function buildUserInput(
   form: FormState,
@@ -76,7 +79,8 @@ export function buildUserInput(
     unitsBilled: numOrUndefined(form.unitsBilled) ?? 0,
     periodFrom: form.periodFrom,
     periodTo: form.periodTo,
-    amountBilled: numOrUndefined(form.amountBilled),
+    amountBilled: numOrUndefined(form.amountBilled) ?? 0,
+    energyChargeBilled: numOrUndefined(form.energyChargeBilled) ?? 0,
     readingType: form.readingType === "estimated" ? "estimated" : "actual",
     category: form.category,
     circle: form.circle.trim() || undefined,
@@ -100,6 +104,14 @@ export function validateIntake(form: FormState): Partial<Record<keyof FormState,
   if (!form.periodTo) errors.periodTo = "Enter the end of the billing period.";
   if (form.periodFrom && form.periodTo && form.periodTo < form.periodFrom) {
     errors.periodTo = "The end date cannot be before the start date.";
+  }
+  const amount = numOrUndefined(form.amountBilled);
+  if (amount === undefined || amount <= 0) {
+    errors.amountBilled = "Enter the total amount billed (a positive number).";
+  }
+  const energyCharge = numOrUndefined(form.energyChargeBilled);
+  if (energyCharge === undefined || energyCharge <= 0) {
+    errors.energyChargeBilled = "Enter the energy charges shown on your bill (a positive number).";
   }
   if (!form.readingType) errors.readingType = "Select whether the reading was actual or estimated.";
   if (!form.category) errors.category = "Select your consumer category.";

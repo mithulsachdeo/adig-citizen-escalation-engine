@@ -13,6 +13,7 @@ export function Input({
   inputMode,
   error,
   required,
+  help,
 }: {
   label: React.ReactNode;
   placeholder?: string;
@@ -23,6 +24,7 @@ export function Input({
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   error?: string;
   required?: boolean;
+  help?: string;
 }) {
   const id = useId();
   const errId = `${id}-err`;
@@ -35,6 +37,11 @@ export function Input({
         {label}
         {required && <span aria-hidden="true" style={{ color: "var(--accent-coral)" }}> *</span>}
       </label>
+      {help && (
+        <span style={{ font: "var(--text-small)", color: "var(--ink-faint)" }}>
+          {help}
+        </span>
+      )}
       <span
         style={{
           display: "flex",

@@ -11,7 +11,7 @@
 import type { FormState, PriorRefState, Screen } from "./state";
 
 const KEY = "adig.check.progress";
-const VERSION = 1 as const;
+const VERSION = 2 as const;
 
 export interface PersistedProgress {
   version: typeof VERSION;
