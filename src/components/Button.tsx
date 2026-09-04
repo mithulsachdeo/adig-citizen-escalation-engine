@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useLightningClick } from "@/hooks/useLightningClick";
 
 type CircleColor = "primary" | "secondary" | "coral" | "blue" | "yellow" | "pink";
 type Variant = "primary" | "secondary" | "ghost";
@@ -33,6 +34,8 @@ export function Button({
   type?: "button" | "submit";
   fullWidth?: boolean;
 }) {
+  const { handleClick, bolt } = useLightningClick({ onClick, size, disabled });
+
   const sizes: Record<Size, { pad: string; font: string }> = {
     sm: { pad: "10px 20px 10px 14px", font: "var(--text-small)" },
     md: { pad: "14px 28px 14px 18px", font: "var(--text-body)" },
@@ -48,9 +51,10 @@ export function Button({
   return (
     <button
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       style={{
+        position: "relative",
         display: fullWidth ? "flex" : "inline-flex",
         width: fullWidth ? "100%" : undefined,
         justifyContent: "center",
@@ -66,6 +70,7 @@ export function Button({
         ...v,
       }}
     >
+      {bolt}
       <span
         aria-hidden="true"
         style={{ width: 10, height: 10, borderRadius: "50%", background: CIRCLE[circle], flexShrink: 0 }}

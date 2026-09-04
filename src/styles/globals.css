@@ -253,6 +253,44 @@ html[data-adig-intro="skip"] .adig-intro { display: none !important; }
 }
 @keyframes adig-intro-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
+/* ---- Lightning-bolt click microanimation on action buttons ---- */
+.adig-zap {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  animation: adig-zap-fade 120ms ease-in 300ms both;
+}
+
+.adig-zap path {
+  fill: none;
+  stroke: var(--accent-yellow);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--accent-yellow));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: adig-zap-strike 200ms ease-out both;
+}
+
+.adig-zap--static,
+.adig-zap--static path {
+  animation: none !important;
+  opacity: 0.9;
+  stroke-dashoffset: 0;
+}
+
+@keyframes adig-zap-strike {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes adig-zap-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 /* ---- Rigged SVG mascot — internal limb motion (composes with the .adig-mascot entrance/idle float) ---- */
 .rm { display: block; }
 .rm-torso,
@@ -273,6 +311,7 @@ html[data-adig-intro="skip"] .adig-intro { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .adig-intro__mark, .adig-intro__bolt path, .adig-intro__flash, .adig-intro__wipe { animation: none !important; }
   .rm.rm--live .rm-torso, .rm.rm--live .rm-arm-l, .rm.rm--live .rm-arm-r, .rm.rm--live .rm-bolt { animation: none !important; }
+  .adig-zap, .adig-zap path { animation: none !important; opacity: 0.9; stroke-dashoffset: 0; }
 }
 
 /* ---- Frosted-glass sticky masthead ---- */
