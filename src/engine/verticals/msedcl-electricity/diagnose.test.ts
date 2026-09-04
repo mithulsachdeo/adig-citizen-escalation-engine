@@ -12,7 +12,7 @@ function input(overrides: Partial<UserInput>): UserInput {
     periodFrom: "2026-05-01",
     periodTo: "2026-05-31",
     amountBilled: 1000,
-    energyChargeBilled: 0,
+    energyChargeBilled: 2016,
     readingType: "actual",
     category: "LT-I-B-residential",
     ...overrides,
@@ -35,20 +35,22 @@ test("estimated reading over an accumulation window → average_billing (actiona
 });
 
 test("normal ~30-day actual bill → legitimate (not actionable)", () => {
-  const r = diagnose(input({ unitsBilled: 250, periodFrom: "2026-05-01", periodTo: "2026-05-31" }));
+  const r = diagnose(input({ unitsBilled: 250, periodFrom: "2026-05-01", periodTo: "2026-05-31", energyChargeBilled: 2016 }));
   expect(r.classification).toBe(CLASSIFICATION.LEGITIMATE);
   expect(r.isActionable).toBe(false);
 });
 
 test("high-usage but genuine single-month actual bill → legitimate (spec story 5)", () => {
-  const r = diagnose(input({ unitsBilled: 700, periodFrom: "2026-06-01", periodTo: "2026-06-30" }));
+  const r = diagnose(input({ unitsBilled: 700, periodFrom: "2026-06-01", periodTo: "2026-06-30", energyChargeBilled: 7236 }));
   expect(r.classification).toBe(CLASSIFICATION.LEGITIMATE);
   expect(r.isActionable).toBe(false);
 });
 
 test("estimated but single-cycle period (no accumulation benefit) → legitimate", () => {
   // Estimated reading, ~30 days: months = 1, so lumped == pro-rata → overcharge 0.
-  const r = diagnose(input({ unitsBilled: 300, readingType: "estimated", periodFrom: "2026-05-01", periodTo: "2026-05-31" }));
+  const r = diagnose(
+    input({ unitsBilled: 300, readingType: "estimated", periodFrom: "2026-05-01", periodTo: "2026-05-31", energyChargeBilled: 2556 })
+  );
   expect(r.classification).toBe(CLASSIFICATION.LEGITIMATE);
   expect(r.isActionable).toBe(false);
 });
@@ -60,7 +62,9 @@ test("recent meter swap with a catch-up overcharge → smart_meter_catch_up (act
 });
 
 test("recent meter swap but genuine single-month reading → legitimate (not actionable)", () => {
-  const r = diagnose(input({ unitsBilled: 250, recentMeterSwap: true, meterType: "smart", periodFrom: "2026-05-01", periodTo: "2026-05-31" }));
+  const r = diagnose(
+    input({ unitsBilled: 250, recentMeterSwap: true, meterType: "smart", periodFrom: "2026-05-01", periodTo: "2026-05-31", energyChargeBilled: 2016 })
+  );
   expect(r.classification).toBe(CLASSIFICATION.LEGITIMATE);
   expect(r.isActionable).toBe(false);
 });
@@ -74,7 +78,7 @@ test("unsupported category (BPL) → unsupported (not actionable)", () => {
 test("accumulation period outside verified tariff data → legitimate (nothing priceable, no false claim)", () => {
   // Pre-coverage-boundary long period: calc returns overcharge 0 (flagged outside), so we must not
   // assert an overbilling we cannot compute.
-  const r = diagnose(input({ unitsBilled: 600, periodFrom: "2025-01-01", periodTo: "2025-06-30" }));
+  const r = diagnose(input({ unitsBilled: 600, periodFrom: "2025-01-01", periodTo: "2025-06-30", energyChargeBilled: 7315 }));
   expect(r.classification).toBe(CLASSIFICATION.LEGITIMATE);
   expect(r.isActionable).toBe(false);
 });

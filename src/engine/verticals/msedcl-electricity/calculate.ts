@@ -108,7 +108,17 @@ function outsideCoverageResult(months: number): CalculationResult {
 }
 
 export const calculate: CalculateFn = (input: UserInput): CalculationResult => {
-  const { unitsBilled, periodFrom, periodTo, category } = input;
+  const { unitsBilled, periodFrom, periodTo, category, energyChargeBilled } = input;
+
+  if (
+    typeof energyChargeBilled !== "number" ||
+    !Number.isFinite(energyChargeBilled) ||
+    energyChargeBilled <= 0
+  ) {
+    throw new Error(
+      `calculate: energyChargeBilled must be a positive number, received ${energyChargeBilled}`
+    );
+  }
 
   // Decision 4: edge categories fail honestly, they are never computed.
   if (!isCategorySupported(category)) {
@@ -161,10 +171,7 @@ export const calculate: CalculateFn = (input: UserInput): CalculationResult => {
 
   const actualBreakdown = telescopic(unitsBilled, actualVersion.slabs);
   const estimatedAsBilledEnergyCharge = roundRupee(sumCharge(actualBreakdown));
-  const actualEnergyCharge =
-    typeof input.energyChargeBilled === "number" && input.energyChargeBilled > 0
-      ? input.energyChargeBilled
-      : estimatedAsBilledEnergyCharge;
+  const actualEnergyCharge = energyChargeBilled;
   const lawfulEnergyCharge = roundRupee(lawful);
 
   const mismatchRatio =

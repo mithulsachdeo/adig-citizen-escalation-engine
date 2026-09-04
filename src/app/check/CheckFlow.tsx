@@ -60,17 +60,23 @@ export function CheckFlow() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  // One pipeline pass drives every screen: diagnosis + calculation are stage-independent; the tier is
-  // selected from `stage` (+ prior-tier ref) for the Documents / Guidance screens.
   const input = useMemo(() => buildUserInput(form, stage, priorRef), [form, stage, priorRef]);
-  const result = useMemo(() => runVertical(msedclElectricitySpec, input), [input]);
+
+  // Only run the engine when the intake form has been validated (or is valid). On the intake screen,
+  // before submission, the user has not yet entered all required fields (e.g. energyChargeBilled), so
+  // running calculate() prematurely would trigger its positive-value guard.
+  const isFormValid = useMemo(() => Object.keys(validateIntake(form)).length === 0, [form]);
+  const result = useMemo(() => {
+    if (!isFormValid) return null;
+    return runVertical(msedclElectricitySpec, input);
+  }, [isFormValid, input]);
 
   const billPeriod = formatBillPeriod(form.periodFrom, form.periodTo);
 
   const narrativeInput: NarrativeInput = useMemo(
     () => ({
       userDescription: form.userDescription.trim() || undefined,
-      classification: result.diagnosis.classification,
+      classification: result?.diagnosis.classification ?? "legitimate",
       billPeriod: billPeriod || undefined,
       unitsBilled: input.unitsBilled || undefined,
       priorMonthlyAvgUnits: input.priorMonthlyAvgUnits,
@@ -78,14 +84,14 @@ export function CheckFlow() {
       readingType: input.readingType,
       meterType: input.meterType,
     }),
-    [form.userDescription, result.diagnosis.classification, billPeriod, input]
+    [form.userDescription, result?.diagnosis.classification, billPeriod, input]
   );
   const narrativeSig = useMemo(() => JSON.stringify(narrativeInput), [narrativeInput]);
 
   // Fetch the caged narrative when the Documents screen is active for an actionable bill. Refetches
   // when the facts (signature) change; always resolves (offline fallback) so the letter never blocks.
   useEffect(() => {
-    if (screen !== "documents" || !result.diagnosis.isActionable) return;
+    if (screen !== "documents" || !result?.diagnosis.isActionable) return;
     let cancelled = false;
     const generator = generatorRef.current;
     if (!generator) return;
@@ -101,11 +107,11 @@ export function CheckFlow() {
     };
     // narrativeInput is captured; narrativeSig is the stable refetch trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, narrativeSig, result.diagnosis.isActionable]);
+  }, [screen, narrativeSig, result?.diagnosis.isActionable]);
 
   // Deterministic calculation annexure — only when a real overcharge was computed (not
   // unsupported / outside-coverage). It carries the slab-by-slab working into the letter (Annexure A).
-  const calc = result.calculation;
+  const calc = result?.calculation;
   const overchargeAnnexure =
     calc && calc.overcharge > 0 && !calc.unsupported && calc.tableLabel !== "outside verified tariff data"
       ? formatOverchargeAnnexure(calc)
@@ -117,14 +123,14 @@ export function CheckFlow() {
     billPeriod: billPeriod || undefined,
     unitsBilled: input.unitsBilled || undefined,
     amountBilled: input.amountBilled,
-    overchargeEstimate: result.calculation?.overcharge,
+    overchargeEstimate: result?.calculation?.overcharge,
     overchargeAnnexure,
     // Display-only hedge (kept on-screen with the annexure, stripped from the submission copy).
     overchargeCaveat: overchargeAnnexure ? calc?.estimateCaveat : undefined,
     priorTierRef: input.priorTierRef,
   };
 
-  const template = result.instrument ? INSTRUMENT_TEMPLATES[result.instrument] : undefined;
+  const template = result?.instrument ? INSTRUMENT_TEMPLATES[result.instrument] : undefined;
   const assembled =
     template && narrative !== null ? assembleInstrument(template, facts, narrative) : null;
 
@@ -145,9 +151,9 @@ export function CheckFlow() {
 
   useEffect(() => {
     if (screen === "guidance") {
-      analytics.guidanceViewed(result.tier?.instrument ?? "none");
+      analytics.guidanceViewed(result?.tier?.instrument ?? "none");
     }
-  }, [screen, result.tier?.instrument]);
+  }, [screen, result?.tier?.instrument]);
 
   // Mount-only: pick up any saved progress and offer it. Marks bootstrap complete so the save effect
   // below never fires before this has run (which would clobber the saved blob with the empty form).
@@ -189,9 +195,10 @@ export function CheckFlow() {
     const found = validateIntake(form);
     setErrors(found);
     if (Object.keys(found).length === 0) {
+      const res = result ?? runVertical(msedclElectricitySpec, input);
       // Zero-PII analytics: the diagnosis just ran; report the outcome as a bucketed range only.
       analytics.diagnosisStarted();
-      analytics.overchargeCalculated(result.calculation?.overcharge ?? 0, result.diagnosis.isActionable);
+      analytics.overchargeCalculated(res.calculation?.overcharge ?? 0, res.diagnosis.isActionable);
       setScreen("results");
     }
   }
@@ -237,7 +244,7 @@ export function CheckFlow() {
         <IntakeStep form={form} setField={setField} errors={errors} onSubmit={submitIntake} />
       )}
 
-      {screen === "results" && (
+      {screen === "results" && result && (
         <ResultsStep
           result={result}
           amountBilled={input.amountBilled}
@@ -246,7 +253,7 @@ export function CheckFlow() {
         />
       )}
 
-      {screen === "documents" && (
+      {screen === "documents" && result && (
         <DocumentsStep
           result={result}
           stage={stage}
@@ -262,7 +269,7 @@ export function CheckFlow() {
         />
       )}
 
-      {screen === "guidance" && (
+      {screen === "guidance" && result && (
         <GuidanceStep
           result={result}
           circle={input.circle}

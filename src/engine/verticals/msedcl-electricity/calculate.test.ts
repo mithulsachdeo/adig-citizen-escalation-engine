@@ -13,12 +13,30 @@ function input(overrides: Partial<UserInput>): UserInput {
     periodFrom: "2026-05-01",
     periodTo: "2026-05-31",
     amountBilled: 1000,
-    energyChargeBilled: 0,
+    energyChargeBilled: 936,
     readingType: "actual",
     category: "LT-I-B-residential",
     ...overrides,
   };
 }
+
+test("calculate throws when energyChargeBilled is missing, zero, or negative", () => {
+  expect(() =>
+    calculate(input({ energyChargeBilled: undefined as unknown as number }))
+  ).toThrow("calculate: energyChargeBilled must be a positive number");
+
+  expect(() => calculate(input({ energyChargeBilled: 0 }))).toThrow(
+    "calculate: energyChargeBilled must be a positive number"
+  );
+
+  expect(() => calculate(input({ energyChargeBilled: -100 }))).toThrow(
+    "calculate: energyChargeBilled must be a positive number"
+  );
+
+  expect(() => calculate(input({ energyChargeBilled: NaN }))).toThrow(
+    "calculate: energyChargeBilled must be a positive number"
+  );
+});
 
 test("slab-jump: 150 units lumped as a ~6-month bill yields a positive overcharge (documented split)", () => {
   // 150 units over 6 equivalent months = 25 units/equivalent-month → all in slab 1 (@3.96).
