@@ -96,7 +96,7 @@ export function createLightningClickController({
   const getBolt = () => {
     return nonce > 0 ? (
       <BoltFlash
-        key={nonce}
+        key={`bolt-${nonce}`}
         nonce={nonce}
         size={size}
         isReducedMotion={isReducedMotion}
@@ -108,7 +108,7 @@ export function createLightningClickController({
   const getFlash = () => {
     return nonce > 0 ? (
       <span
-        key={nonce}
+        key={`flash-${nonce}`}
         className={`adig-flash${isReducedMotion ? " adig-flash--static" : ""}`}
         aria-hidden="true"
       />
@@ -176,7 +176,7 @@ export function useLightningClick({
   const bolt =
     nonce > 0 ? (
       <BoltFlash
-        key={nonce}
+        key={`bolt-${nonce}`}
         nonce={nonce}
         size={size}
         isReducedMotion={isReducedMotion}
@@ -187,7 +187,7 @@ export function useLightningClick({
   const flash =
     nonce > 0 ? (
       <span
-        key={nonce}
+        key={`flash-${nonce}`}
         className={`adig-flash${isReducedMotion ? " adig-flash--static" : ""}`}
         aria-hidden="true"
       />

@@ -100,7 +100,7 @@ describe("useLightningClick and BoltFlash", () => {
 
       const bolt1 = controller.getBolt();
       expect(bolt1).not.toBeNull();
-      expect(bolt1?.key).toBe("1");
+      expect(bolt1?.key).toBe("bolt-1");
 
       // Second click (e.g. rapid consecutive click)
       controller.handleClick({} as React.MouseEvent<HTMLButtonElement>);
@@ -108,7 +108,7 @@ describe("useLightningClick and BoltFlash", () => {
 
       const bolt2 = controller.getBolt();
       expect(bolt2).not.toBeNull();
-      expect(bolt2?.key).toBe("2");
+      expect(bolt2?.key).toBe("bolt-2");
 
       // Verify key changed so React remounts the element to restart the CSS animation
       expect(bolt1?.key).not.toBe(bolt2?.key);
@@ -117,7 +117,7 @@ describe("useLightningClick and BoltFlash", () => {
       controller.trigger();
       expect(controller.getNonce()).toBe(3);
       const bolt3 = controller.getBolt();
-      expect(bolt3?.key).toBe("3");
+      expect(bolt3?.key).toBe("bolt-3");
     });
 
     it("BoltFlash directly renders with key matching nonce prop", () => {
@@ -126,11 +126,11 @@ describe("useLightningClick and BoltFlash", () => {
 
       const vnode1 = BoltFlash({ nonce: 1, size: "md" });
       expect(vnode1).not.toBeNull();
-      expect(vnode1?.key).toBe("1");
+      expect(vnode1?.key).toBe("bolt-wrap-1");
 
       const vnode2 = BoltFlash({ nonce: 2, size: "md" });
       expect(vnode2).not.toBeNull();
-      expect(vnode2?.key).toBe("2");
+      expect(vnode2?.key).toBe("bolt-wrap-2");
       expect(vnode1?.key).not.toBe(vnode2?.key);
     });
   });
@@ -314,7 +314,12 @@ describe("useLightningClick and BoltFlash", () => {
 
       const flash1 = controller.getFlash();
       expect(flash1).not.toBeNull();
-      expect(flash1?.key).toBe("1");
+      expect(flash1?.key).toBe("flash-1");
+
+      // Verify flash and bolt keys are distinct to prevent duplicate key collision warnings
+      const bolt1 = controller.getBolt();
+      expect(flash1?.key).not.toBe(bolt1?.key);
+
       const flash1Html = renderToString(flash1!);
       expect(flash1Html).toContain("adig-flash");
       expect(flash1Html).toContain('aria-hidden="true"');
@@ -323,12 +328,12 @@ describe("useLightningClick and BoltFlash", () => {
       controller.handleClick({} as React.MouseEvent<HTMLButtonElement>);
       expect(controller.getGlowClass()).toBe("adig-glow-pulse-alt");
       const flash2 = controller.getFlash();
-      expect(flash2?.key).toBe("2");
+      expect(flash2?.key).toBe("flash-2");
 
       // Click 3
       controller.trigger();
       expect(controller.getGlowClass()).toBe("adig-glow-pulse");
-      expect(controller.getFlash()?.key).toBe("3");
+      expect(controller.getFlash()?.key).toBe("flash-3");
     });
 
     it("suppresses glow class and applies static flash under reduced motion", () => {

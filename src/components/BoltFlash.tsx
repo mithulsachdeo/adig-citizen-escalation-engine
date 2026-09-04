@@ -28,7 +28,7 @@ export function BoltFlash({
 
   return (
     <span
-      key={nonce}
+      key={`bolt-wrap-${nonce}`}
       className="adig-zap-wrap"
       aria-hidden="true"
       style={{
