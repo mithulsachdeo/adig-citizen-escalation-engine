@@ -53,7 +53,7 @@ function FilingStepItem({
     const el = stepRef.current;
     if (!el || !hasLetterForStep) return;
     function onCopy() {
-      analytics.letterObtained(tier, "copy_event");
+      analytics.letterObtained(tier, "copy_event", "guidance");
     }
     el.addEventListener("copy", onCopy);
     return () => {
@@ -70,6 +70,13 @@ function FilingStepItem({
             href={step.link.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              try {
+                analytics.portalOpened(tier);
+              } catch {
+                /* analytics must never break the flow */
+              }
+            }}
             style={{ fontWeight: 700, color: "var(--accent-blue-ink, var(--ink))" }}
           >
             {t(step.link.labelKey)} ↗
@@ -119,7 +126,7 @@ function FilingSteps({
 
   function copy() {
     if (!letter) return;
-    analytics.letterObtained(tier, "copy_button");
+    analytics.letterObtained(tier, "copy_button", "guidance");
     navigator.clipboard?.writeText(letter).then(
       () => {
         setCopied(true);
@@ -131,7 +138,7 @@ function FilingSteps({
 
   function download() {
     if (!letter) return;
-    analytics.letterObtained(tier, "download");
+    analytics.letterObtained(tier, "download", "guidance");
     const blob = new Blob([letter], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -251,6 +258,31 @@ export function GuidanceStep({
   // can upgrade the generic fallback to their exact forum. Picking updates the shared form state live.
   const needsCircle = tier?.instrument === "cgrf-schedule-a" && !circle && !!setCircle;
 
+  const circlePromptFired = useRef(false);
+  useEffect(() => {
+    if (needsCircle && !circlePromptFired.current) {
+      circlePromptFired.current = true;
+      try {
+        analytics.circlePromptShown();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [needsCircle]);
+
+  const circleSelectedFired = useRef(false);
+  function handleCircleSelect(v: string) {
+    if (!circleSelectedFired.current) {
+      circleSelectedFired.current = true;
+      try {
+        analytics.circleSelected();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+    setCircle?.(v);
+  }
+
   // The letter to surface in the walkthrough — only when it matches THIS tier's card (the RTI sidecar
   // has no generated letter, so its steps carry no copy/download action).
   const letter = assembled?.bodyForSubmission;
@@ -262,12 +294,12 @@ export function GuidanceStep({
         <p>{t("guidance.submitIntro")}</p>
       </Card>
 
-      {needsCircle && setCircle && (
+      {needsCircle && (
         <Card eyebrow={t("guidance.forum")} title={t("guidance.circlePickerTitle")} accent="blue">
           <SelectField
             label={t("intake.circleLabel")}
             value=""
-            onChange={setCircle}
+            onChange={handleCircleSelect}
             help={t("guidance.circlePickerHelp")}
             placeholder={t("intake.circleNotSure")}
             options={CIRCLES}

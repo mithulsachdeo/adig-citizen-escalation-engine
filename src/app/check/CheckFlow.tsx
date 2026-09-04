@@ -148,6 +148,18 @@ export function CheckFlow() {
     }
   }, []);
 
+  const documentsReachedFired = useRef(false);
+  useEffect(() => {
+    if (screen === "documents" && !documentsReachedFired.current) {
+      documentsReachedFired.current = true;
+      try {
+        analytics.documentsReached();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [screen]);
+
   // Zero-PII analytics for the later stages. instrument_generated fires once per assembled tier;
   // guidance_viewed fires when the submit screen is shown. Both carry only the instrument id.
   const instrumentFired = useRef<string | null>(null);
@@ -203,6 +215,13 @@ export function CheckFlow() {
   function submitIntake() {
     const found = validateIntake(form);
     setErrors(found);
+    for (const key of Object.keys(found)) {
+      try {
+        analytics.fieldError(key);
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
     if (Object.keys(found).length === 0) {
       const res = result ?? runVertical(msedclElectricitySpec, input);
       // Zero-PII analytics: the diagnosis just ran; report the outcome as a bucketed range only.

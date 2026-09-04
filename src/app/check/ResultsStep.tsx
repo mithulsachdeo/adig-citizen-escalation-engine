@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -9,6 +9,7 @@ import { Mascot, type MascotExpression, type MascotReaction } from "@/components
 import type { CalculationResult, PipelineResult, SlabCharge } from "@/engine/types";
 import { inr } from "./format";
 import { useT, useLanguage } from "@/i18n/context";
+import { analytics } from "@/lib/analytics";
 
 // Results screen (spec stories 4–7). Order (revised): the screen is titled "What we found", so it
 // LEADS with the diagnosis (the finding), then the disconnection reassurance immediately after (fear
@@ -129,6 +130,18 @@ export function ResultsStep({
   const partialCoverage = calculation?.outsideVerifiedTariff === true && !noPriceableData;
 
   const [showWorking, setShowWorking] = useState(false);
+  const workingOpenedFired = useRef(false);
+
+  useEffect(() => {
+    if (showWorking && !workingOpenedFired.current) {
+      workingOpenedFired.current = true;
+      try {
+        analytics.workingOpened();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [showWorking]);
 
   const fairAmount =
     typeof amountBilled === "number" && overcharge > 0

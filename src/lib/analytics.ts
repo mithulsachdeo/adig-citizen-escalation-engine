@@ -112,6 +112,26 @@ export const analytics = {
     track("intake_started");
   },
 
+  /** The citizen opened the "where is this on my bill?" guide. No properties. */
+  guideOpened(): void {
+    track("guide_opened");
+  },
+
+  /** The citizen expanded the slab-by-slab "see the working" breakdown on Results (S2 comprehension lever). No properties. */
+  workingOpened(): void {
+    track("working_opened");
+  },
+
+  /** A required field failed validation on submit. `field` is the FormState key only (no value). */
+  fieldError(field: string): void {
+    track("field_error", { field });
+  },
+
+  /** The citizen focused a field for the first time this session. `field` is the FormState key only. */
+  fieldReached(field: string): void {
+    track("field_reached", { field });
+  },
+
   /** The citizen submitted intake and diagnosis ran. No properties. */
   diagnosisStarted(): void {
     track("diagnosis_started");
@@ -122,9 +142,29 @@ export const analytics = {
     track("overcharge_calculated", { bucket: bucketOvercharge(overchargeRupees), actionable });
   },
 
+  /** The citizen reached the Documents step (fires whether or not the letter has assembled yet). No properties. */
+  documentsReached(): void {
+    track("documents_reached");
+  },
+
   /** An escalation instrument was assembled for the citizen. `tier` is the instrument id (e.g. "icrs"). */
   instrumentGenerated(tier: string): void {
     track("instrument_generated", { tier: tier || "none" });
+  },
+
+  /** The citizen changed the complaint-stage selector away from its initial value. `to` is the enumerated stage id. */
+  stageChanged(to: string): void {
+    track("stage_changed", { to: to || "none" });
+  },
+
+  /** The selected stage requires a prior-tier reference (higher ladder rung). `stage` is the enumerated stage id. */
+  higherRungSelected(stage: string): void {
+    track("higher_rung_selected", { stage: stage || "none" });
+  },
+
+  /** The citizen provided a prior-tier reference number. No properties — never carry the reference value (PII). */
+  priorRefEntered(): void {
+    track("prior_ref_entered");
   },
 
   /** The submit / how-to-file guidance was viewed for a tier. */
@@ -132,14 +172,29 @@ export const analytics = {
     track("guidance_viewed", { tier: tier || "none" });
   },
 
+  /** The citizen clicked a filing-portal deep link in the walkthrough. `tier` is the enumerated instrument id. */
+  portalOpened(tier: string): void {
+    track("portal_opened", { tier: tier || "none" });
+  },
+
+  /** The just-in-time CGRF circle picker was shown (denominator for circle completion). No properties. */
+  circlePromptShown(): void {
+    track("circle_prompt_shown");
+  },
+
+  /** The citizen picked their MSEDCL circle in the JIT picker. No properties — never carry the circle value (geo/PII). */
+  circleSelected(): void {
+    track("circle_selected");
+  },
+
   /** Self-reported: the citizen indicated they filed the escalation. */
   escalationSubmitted(tier: string): void {
     track("escalation_submitted", { tier: tier || "none" });
   },
 
-  /** The citizen obtained the escalation letter via download, copy button, or copying preview text. */
-  letterObtained(tier: string, method: "download" | "copy_button" | "copy_event"): void {
-    track("letter_obtained", { tier: tier || "none", method });
+  /** The citizen obtained the escalation letter. `screen` says where (S3 documents vs S4 guidance). No PII. */
+  letterObtained(tier: string, method: "download" | "copy_button" | "copy_event", screen: "documents" | "guidance"): void {
+    track("letter_obtained", { tier: tier || "none", method, screen });
   },
 };
 

@@ -54,7 +54,7 @@ export function DocumentsStep({
     const el = previewRef.current;
     if (!el || !assembled) return;
     function onCopy() {
-      analytics.letterObtained(tier, "copy_event");
+      analytics.letterObtained(tier, "copy_event", "documents");
     }
     el.addEventListener("copy", onCopy);
     return () => {
@@ -69,6 +69,45 @@ export function DocumentsStep({
   const requiresPriorRef = !!result.tier?.requiresPriorTierRef;
   const needsPriorRef = result.error?.code === "missing_prior_tier_ref";
 
+  const initialStage = useRef(stage);
+  const stageChangedFired = useRef(false);
+  const higherRungFired = useRef(false);
+  const priorRefEnteredFired = useRef(false);
+
+  function handleStageChange(newStage: string) {
+    if (!stageChangedFired.current && newStage !== initialStage.current) {
+      stageChangedFired.current = true;
+      try {
+        analytics.stageChanged(newStage);
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+    setStage(newStage);
+  }
+
+  useEffect(() => {
+    if (requiresPriorRef && !higherRungFired.current) {
+      higherRungFired.current = true;
+      try {
+        analytics.higherRungSelected(stage);
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [requiresPriorRef, stage]);
+
+  useEffect(() => {
+    if (priorRef.referenceNo.trim() !== "" && !priorRefEnteredFired.current) {
+      priorRefEnteredFired.current = true;
+      try {
+        analytics.priorRefEntered();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [priorRef.referenceNo]);
+
   const stageOptions = [
     { value: "new", label: t("documents.stageNew") },
     { value: "icrs_ignored", label: t("documents.stageIcrs") },
@@ -79,7 +118,7 @@ export function DocumentsStep({
   // disclaimer or estimate caveat (those stay on-screen only). See assembleInstrument.bodyForSubmission.
   function copy() {
     if (!assembled) return;
-    analytics.letterObtained(tier, "copy_button");
+    analytics.letterObtained(tier, "copy_button", "documents");
     navigator.clipboard?.writeText(assembled.bodyForSubmission).then(
       () => {
         setCopied(true);
@@ -91,7 +130,7 @@ export function DocumentsStep({
 
   function download() {
     if (!assembled) return;
-    analytics.letterObtained(tier, "download");
+    analytics.letterObtained(tier, "download", "documents");
     const blob = new Blob([assembled.bodyForSubmission], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -117,7 +156,7 @@ export function DocumentsStep({
       <SelectField
         label={t("documents.stageLabel")}
         value={stage}
-        onChange={setStage}
+        onChange={handleStageChange}
         options={stageOptions}
         help={t("documents.stageHelp")}
         placeholder={t("common.select")}

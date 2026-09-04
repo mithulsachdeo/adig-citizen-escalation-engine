@@ -3,8 +3,9 @@
 // bill with numbered markers over the fields the tool asks for, plus a legend. Static image (no PII,
 // no upload, on-device) — it just teaches the citizen where to read each value on their own bill.
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/context";
+import { analytics } from "@/lib/analytics";
 
 // Marker positions as % of the sample image (public/bill-sample.png). Keyed to billGuide.legend.*.
 // Numbered in FORM order (the order the citizen fills the fields), so field ③ ↔ bill ③.
@@ -30,6 +31,19 @@ function Chevron({ open }: { open: boolean }) {
 export function BillGuide() {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const guideOpenedFired = useRef(false);
+
+  useEffect(() => {
+    if (open && !guideOpenedFired.current) {
+      guideOpenedFired.current = true;
+      try {
+        analytics.guideOpened();
+      } catch {
+        /* analytics must never break the flow */
+      }
+    }
+  }, [open]);
+
   return (
     <div className="adig-billguide">
       <button
