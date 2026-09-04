@@ -35,6 +35,27 @@ test("bucketOvercharge tolerates non-finite input by returning 'none'", () => {
   expect(bucketOvercharge(Number.POSITIVE_INFINITY)).toBe("none");
 });
 
+test("landing_viewed carries no properties", () => {
+  analytics.landingViewed();
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("landing_viewed");
+  expect(events[0].props).toEqual({});
+});
+
+test("hero_passed carries no properties", () => {
+  analytics.heroPassed();
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("hero_passed");
+  expect(events[0].props).toEqual({});
+});
+
+test("intake_started carries no properties", () => {
+  analytics.intakeStarted();
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("intake_started");
+  expect(events[0].props).toEqual({});
+});
+
 test("diagnosis_started carries no properties", () => {
   analytics.diagnosisStarted();
   expect(events).toHaveLength(1);
@@ -91,6 +112,9 @@ test("letter_obtained falls back to 'none' when tier is empty", () => {
 });
 
 test("no event exposes PII-shaped keys", () => {
+  analytics.landingViewed();
+  analytics.heroPassed();
+  analytics.intakeStarted();
   analytics.diagnosisStarted();
   analytics.overchargeCalculated(1200, true);
   analytics.instrumentGenerated("icrs");

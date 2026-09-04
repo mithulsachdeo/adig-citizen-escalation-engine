@@ -139,6 +139,15 @@ export function CheckFlow() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [screen]);
 
+  // Zero-PII analytics: intake_started fires once on mount when the check flow loads (top of funnel).
+  const intakeFired = useRef(false);
+  useEffect(() => {
+    if (!intakeFired.current) {
+      intakeFired.current = true;
+      analytics.intakeStarted();
+    }
+  }, []);
+
   // Zero-PII analytics for the later stages. instrument_generated fires once per assembled tier;
   // guidance_viewed fires when the submit screen is shown. Both carry only the instrument id.
   const instrumentFired = useRef<string | null>(null);

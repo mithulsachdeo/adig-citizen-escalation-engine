@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Mascot } from "@/components/Mascot";
 import { RiggedMascot } from "@/components/RiggedMascot";
 import { CostBreakdown } from "@/components/CostBreakdown";
+import { LandingAnalytics } from "@/components/LandingAnalytics";
 import { useT } from "@/i18n/context";
 
 // design.md "Lightning Flow": 5 steps with fixed accents (blue/coral/yellow/pink/brand-green),
@@ -23,6 +24,7 @@ export default function Home() {
   const t = useT();
   return (
     <>
+      <LandingAnalytics />
       <Header />
 
       {/* ---- Hero: full-bleed green band, text left, live product-peek right ---- */}

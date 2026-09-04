@@ -97,6 +97,21 @@ function track(event: string, props: AnalyticsProps = {}): void {
 // `track(name, arbitraryProps)` exported, so no call site can attach bill content or PII.
 
 export const analytics = {
+  /** The landing page loaded (top of the S0 step). No properties. */
+  landingViewed(): void {
+    track("landing_viewed");
+  },
+
+  /** The visitor scrolled past the hero on the landing (comprehension-positive signal). No properties. */
+  heroPassed(): void {
+    track("hero_passed");
+  },
+
+  /** The citizen opened the check flow (top of funnel). No properties. */
+  intakeStarted(): void {
+    track("intake_started");
+  },
+
   /** The citizen submitted intake and diagnosis ran. No properties. */
   diagnosisStarted(): void {
     track("diagnosis_started");
