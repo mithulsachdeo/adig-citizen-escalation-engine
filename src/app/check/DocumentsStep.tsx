@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -11,6 +11,7 @@ import type { PipelineResult } from "@/engine/types";
 import type { AssembledInstrument } from "@/engine/instruments";
 import type { PriorRefState } from "./state";
 import { useT, useLanguage } from "@/i18n/context";
+import { analytics } from "@/lib/analytics";
 
 // Documents screen (spec D15/D16, story 10–12). A declared-stage selector picks the ladder rung;
 // Schedule A / B rungs additionally need the prior-tier reference. The letter body is composed from
@@ -45,6 +46,22 @@ export function DocumentsStep({
   const t = useT();
   const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const tier = assembled?.instrument ?? result.tier?.instrument ?? "none";
+
+  // Attach native copy listener scoped specifically to the letter preview container.
+  useEffect(() => {
+    const el = previewRef.current;
+    if (!el || !assembled) return;
+    function onCopy() {
+      analytics.letterObtained(tier, "copy_event");
+    }
+    el.addEventListener("copy", onCopy);
+    return () => {
+      el.removeEventListener("copy", onCopy);
+    };
+  }, [assembled, tier]);
+
   // Show the prior-tier-ref inputs based on the STABLE "this stage needs a prior ref" signal, so they
   // stay visible while the citizen types. `needsPriorRef` is the TRANSIENT "still missing" state — it
   // clears on the first keystroke, so it must only drive the missing-ref message / letter-not-ready
@@ -62,6 +79,7 @@ export function DocumentsStep({
   // disclaimer or estimate caveat (those stay on-screen only). See assembleInstrument.bodyForSubmission.
   function copy() {
     if (!assembled) return;
+    analytics.letterObtained(tier, "copy_button");
     navigator.clipboard?.writeText(assembled.bodyForSubmission).then(
       () => {
         setCopied(true);
@@ -73,6 +91,7 @@ export function DocumentsStep({
 
   function download() {
     if (!assembled) return;
+    analytics.letterObtained(tier, "download");
     const blob = new Blob([assembled.bodyForSubmission], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -153,6 +172,7 @@ export function DocumentsStep({
       ) : (
           <>
             <DocumentPreview
+              ref={previewRef}
               title={assembled.title}
               badge={<Badge variant={assembled.confidence} />}
               draft={assembled.confidence === "draft"}

@@ -71,10 +71,30 @@ test("empty tier falls back to 'none' rather than an empty string", () => {
   expect(events[0].props).toEqual({ tier: "none" });
 });
 
+test("letter_obtained carries tier and method for download, copy_button, and copy_event", () => {
+  analytics.letterObtained("icrs", "download");
+  analytics.letterObtained("cgrf-schedule-a", "copy_button");
+  analytics.letterObtained("ombudsman-schedule-b", "copy_event");
+  expect(events.map((e) => e.event)).toEqual([
+    "letter_obtained",
+    "letter_obtained",
+    "letter_obtained",
+  ]);
+  expect(events[0].props).toEqual({ tier: "icrs", method: "download" });
+  expect(events[1].props).toEqual({ tier: "cgrf-schedule-a", method: "copy_button" });
+  expect(events[2].props).toEqual({ tier: "ombudsman-schedule-b", method: "copy_event" });
+});
+
+test("letter_obtained falls back to 'none' when tier is empty", () => {
+  analytics.letterObtained("", "copy_button");
+  expect(events[0].props).toEqual({ tier: "none", method: "copy_button" });
+});
+
 test("no event exposes PII-shaped keys", () => {
   analytics.diagnosisStarted();
   analytics.overchargeCalculated(1200, true);
   analytics.instrumentGenerated("icrs");
+  analytics.letterObtained("icrs", "download");
   const forbidden = ["name", "address", "consumerNo", "description", "narrative", "amount", "units", "email"];
   for (const { props } of events) {
     for (const key of Object.keys(props)) {

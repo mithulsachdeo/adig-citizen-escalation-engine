@@ -121,6 +121,11 @@ export const analytics = {
   escalationSubmitted(tier: string): void {
     track("escalation_submitted", { tier: tier || "none" });
   },
+
+  /** The citizen obtained the escalation letter via download, copy button, or copying preview text. */
+  letterObtained(tier: string, method: "download" | "copy_button" | "copy_event"): void {
+    track("letter_obtained", { tier: tier || "none", method });
+  },
 };
 
 export default analytics;

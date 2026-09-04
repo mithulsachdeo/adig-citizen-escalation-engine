@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -9,6 +9,7 @@ import type { AssembledInstrument } from "@/engine/instruments";
 import { getTierRouting, CIRCLES } from "@/engine/routing";
 import { SelectField } from "./fields";
 import { useT } from "@/i18n/context";
+import { analytics } from "@/lib/analytics";
 
 // Guidance / Submit screen (spec D18, story 8). Shows, for the selected rung, WHERE and HOW to file:
 // forum, channel, address/contact, timeline, AND a numbered "how to file" walkthrough. Routing comes from
@@ -29,6 +30,75 @@ function Detail({ term, children }: { term: string; children: React.ReactNode })
   );
 }
 
+function FilingStepItem({
+  step,
+  letter,
+  tier,
+  copy,
+  download,
+  copied,
+}: {
+  step: FilingStep;
+  letter?: string;
+  tier: string;
+  copy: () => void;
+  download: () => void;
+  copied: boolean;
+}) {
+  const t = useT();
+  const stepRef = useRef<HTMLLIElement>(null);
+  const hasLetterForStep = (step.letterAction === "copy" || step.letterAction === "download") && !!letter;
+
+  useEffect(() => {
+    const el = stepRef.current;
+    if (!el || !hasLetterForStep) return;
+    function onCopy() {
+      analytics.letterObtained(tier, "copy_event");
+    }
+    el.addEventListener("copy", onCopy);
+    return () => {
+      el.removeEventListener("copy", onCopy);
+    };
+  }, [hasLetterForStep, tier]);
+
+  return (
+    <li ref={hasLetterForStep ? stepRef : undefined} style={{ font: "var(--text-body)", color: "var(--ink)" }}>
+      <span>{t(step.textKey)}</span>
+      {step.link && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <a
+            href={step.link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontWeight: 700, color: "var(--accent-blue-ink, var(--ink))" }}
+          >
+            {t(step.link.labelKey)} ↗
+          </a>
+        </div>
+      )}
+      {step.letterAction === "copy" && letter && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <Button variant="secondary" onClick={copy}>
+            {copied ? t("guidance.letterCopied") : t("guidance.copyLetter")}
+          </Button>
+        </div>
+      )}
+      {step.letterAction === "download" && letter && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <Button variant="secondary" onClick={download}>
+            {t("guidance.downloadLetter")}
+          </Button>
+        </div>
+      )}
+      {step.verifyAtSource && (
+        <p style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginTop: "var(--space-2)" }}>
+          {t("guidance.stepVerify")}
+        </p>
+      )}
+    </li>
+  );
+}
+
 // The "how to file" walkthrough for one forum. `letter` is the citizen's submission text (the selected
 // tier's letter, minus on-screen hedges); it powers the copy (online paste) / download (offline print)
 // actions. When absent, those actions simply don't render — the steps still show.
@@ -36,10 +106,12 @@ function FilingSteps({
   steps,
   letter,
   letterFilename,
+  tier,
 }: {
   steps: FilingStep[];
   letter?: string;
   letterFilename?: string;
+  tier: string;
 }) {
   const t = useT();
   const [copied, setCopied] = useState(false);
@@ -47,6 +119,7 @@ function FilingSteps({
 
   function copy() {
     if (!letter) return;
+    analytics.letterObtained(tier, "copy_button");
     navigator.clipboard?.writeText(letter).then(
       () => {
         setCopied(true);
@@ -58,6 +131,7 @@ function FilingSteps({
 
   function download() {
     if (!letter) return;
+    analytics.letterObtained(tier, "download");
     const blob = new Blob([letter], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -79,40 +153,15 @@ function FilingSteps({
       )}
       <ol style={{ margin: 0, paddingLeft: "1.4em", display: "grid", gap: "var(--space-4)" }}>
         {steps.map((step) => (
-          <li key={step.textKey} style={{ font: "var(--text-body)", color: "var(--ink)" }}>
-            <span>{t(step.textKey)}</span>
-            {step.link && (
-              <div style={{ marginTop: "var(--space-3)" }}>
-                <a
-                  href={step.link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontWeight: 700, color: "var(--accent-blue-ink, var(--ink))" }}
-                >
-                  {t(step.link.labelKey)} ↗
-                </a>
-              </div>
-            )}
-            {step.letterAction === "copy" && letter && (
-              <div style={{ marginTop: "var(--space-3)" }}>
-                <Button variant="secondary" onClick={copy}>
-                  {copied ? t("guidance.letterCopied") : t("guidance.copyLetter")}
-                </Button>
-              </div>
-            )}
-            {step.letterAction === "download" && letter && (
-              <div style={{ marginTop: "var(--space-3)" }}>
-                <Button variant="secondary" onClick={download}>
-                  {t("guidance.downloadLetter")}
-                </Button>
-              </div>
-            )}
-            {step.verifyAtSource && (
-              <p style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginTop: "var(--space-2)" }}>
-                {t("guidance.stepVerify")}
-              </p>
-            )}
-          </li>
+          <FilingStepItem
+            key={step.textKey}
+            step={step}
+            letter={letter}
+            tier={tier}
+            copy={copy}
+            download={download}
+            copied={copied}
+          />
         ))}
       </ol>
       <p role="status" aria-live="polite" style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginTop: "var(--space-3)" }}>
@@ -130,6 +179,7 @@ function RoutingCard({
   confidence,
   letter,
   letterFilename,
+  tier,
 }: {
   eyebrow: string;
   title: string;
@@ -139,6 +189,7 @@ function RoutingCard({
   /** The citizen's submission text, for the copy/download step actions. Omit for cards with no letter (e.g. RTI). */
   letter?: string;
   letterFilename?: string;
+  tier?: string;
 }) {
   const t = useT();
   return (
@@ -154,7 +205,12 @@ function RoutingCard({
         {routing.slaText && <Detail term={t("guidance.timeline")}>{routing.slaText}</Detail>}
       </dl>
       {routing.filingSteps && routing.filingSteps.length > 0 && (
-        <FilingSteps steps={routing.filingSteps} letter={letter} letterFilename={letterFilename} />
+        <FilingSteps
+          steps={routing.filingSteps}
+          letter={letter}
+          letterFilename={letterFilename}
+          tier={tier ?? "none"}
+        />
       )}
       {routing.verifyAtSource && (
         <p style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginTop: "var(--space-3)" }}>
@@ -228,6 +284,7 @@ export function GuidanceStep({
           confidence={tier.confidence}
           letter={letter}
           letterFilename={letterFilename}
+          tier={assembled?.instrument ?? tier.instrument}
         />
       ) : (
         <Alert tone="info" title={t("guidance.noSubmissionTitle")}>

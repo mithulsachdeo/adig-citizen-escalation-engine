@@ -2,22 +2,21 @@ import React from "react";
 
 // design.md: the one "serious" component — sharp frame, monospace, official register.
 // Addendum §1 badge slot (top-right) + §4 print: className "document-preview" is the print anchor.
-export function DocumentPreview({
-  title,
-  badge,
-  draft = false,
-  children,
-}: {
+export interface DocumentPreviewProps {
   title: string;
   badge?: React.ReactNode;
   /** When true, a plain-text "DRAFT" line prints inside the letter so a printed draft can't be
    *  mistaken for a final copy — independent of the badge's color chip (addendum §4). */
   draft?: boolean;
   children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="document-preview"
+}
+
+export const DocumentPreview = React.forwardRef<HTMLDivElement, DocumentPreviewProps>(
+  function DocumentPreview({ title, badge, draft = false, children }, ref) {
+    return (
+      <div
+        ref={ref}
+        className="document-preview"
       style={{
         background: "var(--white)",
         borderRadius: "var(--radius-sm)",
@@ -72,4 +71,6 @@ export function DocumentPreview({
       </div>
     </div>
   );
-}
+});
+
+DocumentPreview.displayName = "DocumentPreview";
