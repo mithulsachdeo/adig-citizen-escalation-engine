@@ -112,6 +112,9 @@ export function validateIntake(form: FormState): Partial<Record<keyof FormState,
   const energyCharge = numOrUndefined(form.energyChargeBilled);
   if (energyCharge === undefined || energyCharge <= 0) {
     errors.energyChargeBilled = "Enter the energy charges shown on your bill (a positive number).";
+  } else if (amount !== undefined && amount > 0 && energyCharge > amount) {
+    errors.energyChargeBilled =
+      "Energy charges can't be more than your total amount billed — check you haven't swapped the two figures.";
   }
   if (!form.readingType) errors.readingType = "Select whether the reading was actual or estimated.";
   if (!form.category) errors.category = "Select your consumer category.";

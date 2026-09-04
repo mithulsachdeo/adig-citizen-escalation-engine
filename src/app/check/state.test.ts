@@ -60,6 +60,31 @@ test("validateIntake rejects an end date before the start date", () => {
   ).toBeTruthy();
 });
 
+test("validateIntake cross-checks energyChargeBilled against total amountBilled", () => {
+  // (a) energyChargeBilled > amountBilled produces specific error on energyChargeBilled only
+  const higher = validateIntake(
+    form({ ...VALID, amountBilled: "1000", energyChargeBilled: "1500" })
+  );
+  expect(higher.energyChargeBilled).toContain(
+    "Energy charges can't be more than your total amount billed — check you haven't swapped the two figures."
+  );
+  expect(higher.amountBilled).toBeUndefined();
+
+  // (b) energyChargeBilled === amountBilled is allowed (no error)
+  const equal = validateIntake(
+    form({ ...VALID, amountBilled: "1000", energyChargeBilled: "1000" })
+  );
+  expect(equal.energyChargeBilled).toBeUndefined();
+  expect(equal.amountBilled).toBeUndefined();
+
+  // (c) energyChargeBilled < amountBilled is unaffected (no error)
+  const lower = validateIntake(
+    form({ ...VALID, amountBilled: "1500", energyChargeBilled: "936" })
+  );
+  expect(lower.energyChargeBilled).toBeUndefined();
+  expect(lower.amountBilled).toBeUndefined();
+});
+
 test("buildUserInput maps strings to typed UserInput and collapses blanks to undefined", () => {
   const input = buildUserInput(
     form({ ...VALID, circle: "  ", meterType: "", priorMonthlyAvgUnits: "" })
