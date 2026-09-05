@@ -164,7 +164,7 @@ export function ResultsStep({
   const mascotExpression: MascotExpression = relieved ? "happy" : rallying ? "helping" : "neutral";
   const mascotReaction: MascotReaction = relieved ? "hop" : rallying ? "tilt" : "none";
 
-  const showWorkingToggle = !unsupported && !noPriceableData && calculation != null && overcharge > 0;
+  const showWorkingToggle = !unsupported && !noPriceableData && calculation != null && actionable && overcharge > 0;
 
   return (
     <div className="adig-stack">
@@ -176,7 +176,7 @@ export function ResultsStep({
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: actionable ? "var(--accent-coral)" : "var(--brand-green)" }} />
               <span style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Diagnosis
+                {t("results.diagnosisEyebrow")}
               </span>
             </div>
             <div style={{ font: "var(--text-h2)", color: "var(--ink)", marginTop: 4 }}>{title}</div>
@@ -208,7 +208,7 @@ export function ResultsStep({
           {t("results.outsideBody")}
         </Alert>
       ) : (
-        calculation && (
+        actionable && calculation && (
           <div className="adig-stack-sm">
             {calculation.energyChargeMismatch && (
               <Alert tone="warning" title={t("results.mismatchTitle")}>
