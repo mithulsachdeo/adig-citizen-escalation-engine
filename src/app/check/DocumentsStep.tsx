@@ -186,6 +186,7 @@ export function DocumentsStep({
             <Input
               label={t("documents.priorDate")}
               type="date"
+              required
               value={priorRef.date}
               onChange={(e) => setPriorRef({ ...priorRef, date: e.target.value })}
             />

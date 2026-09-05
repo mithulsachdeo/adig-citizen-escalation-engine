@@ -66,10 +66,14 @@ export function runVertical(spec: Vertical, rawInput: UserInput): PipelineResult
   return { diagnosis, calculation, evidence, tier, instrument: tier.instrument };
 }
 
-/** True only when a usable prior-tier reference is present (a bare object with a blank ref does not count). */
+/** True only when a usable prior-tier reference is present (both reference number and date are required). */
 function hasPriorTierRef(input: UserInput): boolean {
   const ref = input.priorTierRef;
-  return !!ref && typeof ref.referenceNo === "string" && ref.referenceNo.trim().length > 0;
+  return (
+    !!ref &&
+    typeof ref.referenceNo === "string" && ref.referenceNo.trim().length > 0 &&
+    typeof ref.date === "string" && ref.date.trim().length > 0
+  );
 }
 
 export default runVertical;

@@ -84,6 +84,28 @@ test("a blank prior-tier reference number does not satisfy the requirement", () 
   expect(r.error?.code).toBe("missing_prior_tier_ref");
 });
 
+test("a prior-tier ref with empty date does not satisfy the requirement (withholds letter until both ref and date are entered)", () => {
+  const r = runVertical(
+    msedclElectricitySpec,
+    actionable({
+      declaredStage: "icrs_ignored",
+      priorTierRef: { referenceNo: "1", date: "", outcome: "" },
+    }),
+  );
+  expect(r.instrument).toBeNull();
+  expect(r.error?.code).toBe("missing_prior_tier_ref");
+
+  const passing = runVertical(
+    msedclElectricitySpec,
+    actionable({
+      declaredStage: "icrs_ignored",
+      priorTierRef: { referenceNo: "MH/CGRF/2026/123", date: "2026-05-01", outcome: "" },
+    }),
+  );
+  expect(passing.instrument).toBe("cgrf-schedule-a");
+  expect(passing.error).toBeUndefined();
+});
+
 test("a prior-ref tier reports requiresPriorTierRef=true in BOTH the missing and filled states", () => {
   // Contract the Documents UI gates on: the prior-tier-ref INPUT must stay visible while the citizen
   // types the reference. So the stable "this stage needs a prior ref" signal (tier.requiresPriorTierRef)
