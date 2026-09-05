@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { Alert } from "@/components/Alert";
 import { Footer } from "@/components/Footer";
 import { Mascot } from "@/components/Mascot";
-import { RiggedMascot } from "@/components/RiggedMascot";
 import { CostBreakdown } from "@/components/CostBreakdown";
 import { LandingAnalytics } from "@/components/LandingAnalytics";
 import { useT } from "@/i18n/context";
@@ -149,8 +148,8 @@ export default function Home() {
       <section className="adig-wide" style={{ paddingBlock: "var(--space-6)" }}>
         <div className="adig-reassure">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "flex-start" }}>
-            {/* Rigged SVG mascot (earn-its-place candidate) shown here for side-by-side judging vs the PNG in the hero/results. */}
-            <RiggedMascot expression="helping" size={128} />
+            {/* Animated SVG mascot in helping pose */}
+            <Mascot expression="helping" size={128} />
             <h2 style={{ margin: 0 }}>{t("landing.reassureHeading")}</h2>
           </div>
           <Alert tone="info" title={t("landing.reassureAlertTitle")}>

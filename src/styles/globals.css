@@ -331,26 +331,8 @@ html[data-adig-intro="skip"] .adig-intro { display: none !important; }
   to { opacity: 0; }
 }
 
-/* ---- Rigged SVG mascot — internal limb motion (composes with the .adig-mascot entrance/idle float) ---- */
-.rm { display: block; }
-.rm-torso,
-.rm-arm-l,
-.rm-arm-r { transform-box: view-box; }
-.rm-torso { transform-origin: 60px 112px; }
-.rm-arm-l { transform-origin: 40px 66px; }
-.rm-arm-r { transform-origin: 80px 66px; }
-.rm.rm--live .rm-torso { animation: rm-breathe 4s ease-in-out infinite; }
-.rm.rm--live .rm-arm-l { animation: rm-sway 3.4s ease-in-out infinite; }
-.rm.rm--live .rm-bolt { animation: rm-flicker 3.6s ease-in-out infinite; }
-.rm.rm--live[data-exp="happy"] .rm-arm-r,
-.rm.rm--live[data-exp="helping"] .rm-arm-r { animation: rm-wave 2.6s ease-in-out infinite; }
-@keyframes rm-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.035) translateY(-1px); } }
-@keyframes rm-sway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(7deg); } }
-@keyframes rm-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-16deg); } }
-@keyframes rm-flicker { 0%, 86%, 100% { opacity: 1; } 91% { opacity: 0.35; } 95% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .adig-intro__mark, .adig-intro__bolt path, .adig-intro__flash, .adig-intro__wipe { animation: none !important; }
-  .rm.rm--live .rm-torso, .rm.rm--live .rm-arm-l, .rm.rm--live .rm-arm-r, .rm.rm--live .rm-bolt { animation: none !important; }
   .adig-zap, .adig-zap path { animation: none !important; opacity: 0.9; stroke-dashoffset: 0; }
   .adig-flash { animation: none !important; opacity: 0.2; }
   .adig-glow-pulse, .adig-glow-pulse-alt { animation: none !important; box-shadow: none !important; }

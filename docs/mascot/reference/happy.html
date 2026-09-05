@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adig Mascot — Happy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        svg { shape-rendering: geometricPrecision; }
+        .mascot-container { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body>
+
+    <div class="min-h-screen flex flex-col items-center justify-center relative bg-[#f7fbed] font-sans text-[#2c2e2a] overflow-hidden" data-sd-id="1">
+
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#8ed462]/18 rounded-full blur-[110px] -z-10 pointer-events-none" data-sd-id="2"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[62%] w-[300px] h-[300px] bg-[#f4c542]/14 rounded-full blur-[90px] -z-10 pointer-events-none" data-sd-id="3"></div>
+
+        <div class="text-center mb-10 z-10" data-sd-id="4">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-[#4a7a2e] mb-2" data-sd-id="11">Happy</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-[#2c2e2a] mb-3 tracking-tight" data-sd-id="5">Adig <span class="text-[#ef4444]" data-sd-id="6">Mascot</span></h1>
+            <p class="text-base text-[#5f6157] max-w-md mx-auto" data-sd-id="7">Relief — the bill checks out, or the letter is done. Celebrating with you.</p>
+        </div>
+
+        <div id="mascot-wrapper" class="mascot-container relative z-20" data-sd-id="8">
+            <svg id="mascot-svg" width="280" height="360" viewBox="0 0 280 360" fill="none" xmlns="http://www.w3.org/2000/svg" data-sd-id="9">
+                <defs>
+                    <filter id="bolt-glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="8" result="blur"></feGaussianBlur>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"></feComposite>
+                    </filter>
+                    <filter id="body-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <fedropshadow dx="0" dy="10" stdDeviation="14" flood-color="#4a7a2e" flood-opacity="0.18"></fedropshadow>
+                    </filter>
+                    <linearGradient id="suit-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#9bdb68"></stop>
+                        <stop offset="100%" stop-color="#79c247"></stop>
+                    </linearGradient>
+                    <linearGradient id="bolt-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fde047"></stop>
+                        <stop offset="100%" stop-color="#eab308"></stop>
+                    </linearGradient>
+                </defs>
+
+                <g id="mascot-body-group" filter="url(#body-shadow)">
+                    <path id="cape" d="M80 120 L50 280 Q 140 300 230 280 L200 120 Z" fill="#ef4444" opacity="0.92"></path>
+
+                    <!-- Left arm raised in cheer -->
+                    <g id="arm-left" transform-origin="102 165">
+                        <rect x="90" y="160" width="24" height="70" rx="12" fill="#6fb843" transform="rotate(-28 102 165)"></rect>
+                        <circle cx="70" cy="150" r="14" fill="#f4c542"></circle>
+                    </g>
+
+                    <rect x="100" y="140" width="80" height="120" rx="30" fill="url(#suit-grad)" stroke="#4a7a2e" stroke-width="2"></rect>
+
+                    <circle cx="140" cy="185" r="20" fill="#4a7a2e" opacity="0.55"></circle>
+                    <path d="M135 175 L145 175 L140 185 L148 185 L135 198 L138 188 L130 188 Z" fill="#fde047"></path>
+
+                    <rect x="115" y="240" width="20" height="60" rx="10" fill="#2563eb"></rect>
+                    <rect x="145" y="240" width="20" height="60" rx="10" fill="#2563eb"></rect>
+                    <path d="M110 290 h30 a10 10 0 0 1 10 10 v0 a0 0 0 0 1 0 0 h-40 a0 0 0 0 1 0 0 v-10 a10 10 0 0 1 10 -10 z" fill="#f4c542"></path>
+                    <path d="M140 290 h30 a10 10 0 0 1 10 10 v0 a0 0 0 0 1 0 0 h-40 a0 0 0 0 1 0 0 v-10 a10 10 0 0 1 10 -10 z" fill="#f4c542"></path>
+
+                    <g id="head-group">
+                        <circle cx="140" cy="100" r="45" fill="#8ed462"></circle>
+                        <circle cx="140" cy="100" r="38" fill="#fffdf5"></circle>
+                        <!-- joyful squinting eyes (upward arcs) -->
+                        <path id="eye-left" d="M119 96 Q125 89 131 96" stroke="#2c2e2a" stroke-width="3.4" stroke-linecap="round" fill="none"></path>
+                        <path id="eye-right" d="M149 96 Q155 89 161 96" stroke="#2c2e2a" stroke-width="3.4" stroke-linecap="round" fill="none"></path>
+                        <circle cx="114" cy="108" r="7" fill="#ef4444" opacity="0.4"></circle>
+                        <circle cx="166" cy="108" r="7" fill="#ef4444" opacity="0.4"></circle>
+                        <!-- big open grin -->
+                        <path id="mouth" d="M126 108 Q 140 126 154 108 Q 140 116 126 108 Z" fill="#2c2e2a"></path>
+                    </g>
+                </g>
+
+                <!-- Right arm raised, holding bolt high -->
+                <g id="arm-right" transform-origin="160 160">
+                    <rect x="160" y="150" width="24" height="80" rx="12" fill="#7cc44f" transform="rotate(-40 160 150)"></rect>
+                    <circle cx="215" cy="105" r="16" fill="#f4c542"></circle>
+                    <g id="the-bolt" filter="url(#bolt-glow)">
+                        <path d="M225 30 L205 70 h20 L210 120 L245 60 h-20 L235 30 Z" fill="url(#bolt-grad)"></path>
+                    </g>
+                </g>
+
+                <g id="sparkle-layer" pointer-events="none"></g>
+            </svg>
+        </div>
+
+        <div id="status-text" class="mt-8 text-sm font-medium text-[#4a7a2e] opacity-0 transition-opacity duration-300" data-sd-id="10">
+            Great news!
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const wrapper = document.getElementById('mascot-wrapper');
+            const svg = document.getElementById('mascot-svg');
+            const bodyGroup = document.getElementById('mascot-body-group');
+            const rightArm = document.getElementById('arm-right');
+            const leftArm = document.getElementById('arm-left');
+            const bolt = document.getElementById('the-bolt');
+            const cape = document.getElementById('cape');
+            const headGroup = document.getElementById('head-group');
+            const sparkleLayer = document.getElementById('sparkle-layer');
+            const statusText = document.getElementById('status-text');
+            const SVGNS = "http://www.w3.org/2000/svg";
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            gsap.set(wrapper, { transformOrigin: "center bottom" });
+            gsap.set(rightArm, { transformOrigin: "30% 90%" });
+            gsap.set(bodyGroup, { transformOrigin: "50% 100%" });
+            gsap.set(cape, { transformOrigin: "140px 120px" });
+            gsap.set(headGroup, { transformOrigin: "140px 140px" });
+            gsap.set(bolt, { transformOrigin: "center center" });
+
+            function startAmbient() {
+                if (reduceMotion) return;
+                // Happy idle = a light, repeating celebratory bob (more energetic than neutral float).
+                gsap.to(svg, { y: -18, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
+                gsap.to(bodyGroup, { scale: 1.03, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: -1 });
+                gsap.to(headGroup, { rotation: 3, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: -1 });
+                gsap.to(cape, { rotation: 5, skewX: -3, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 0.15 });
+                gsap.to(bolt, { scale: 1.1, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
+                // Occasional spontaneous sparkle so the joy feels alive.
+                gsap.delayedCall(1.4, spontaneousSparkle);
+            }
+            function spontaneousSparkle() {
+                if (reduceMotion) return;
+                sparkleBurst();
+                gsap.delayedCall(gsap.utils.random(2.5, 4.5), spontaneousSparkle);
+            }
+
+            if (reduceMotion) {
+                gsap.set(wrapper, { scale: 1, y: 0, opacity: 1 });
+                gsap.to(statusText, { opacity: 1, duration: 0.3 });
+                startAmbient();
+            } else {
+                gsap.from(wrapper, {
+                    duration: 1.1, scale: 0.2, y: 50, opacity: 0, ease: "elastic.out(1, 0.55)", delay: 0.25,
+                    onComplete: () => { startAmbient(); gsap.to(statusText, { opacity: 1, duration: 0.5 }); }
+                });
+            }
+
+            wrapper.addEventListener('mouseenter', () => {
+                gsap.to(wrapper, { scale: 1.1, duration: 0.4, ease: "back.out(1.7)" });
+                gsap.to(bolt, { filter: "drop-shadow(0px 0px 16px rgba(244, 197, 66, 0.9))", duration: 0.3 });
+                statusText.innerText = "Woohoo!";
+                statusText.classList.add('text-[#ef4444]'); statusText.classList.remove('text-[#4a7a2e]');
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                gsap.to(wrapper, { scale: 1, duration: 0.4, ease: "power2.out" });
+                gsap.to(bolt, { filter: "none", duration: 0.3 });
+                statusText.innerText = "Great news!";
+                statusText.classList.remove('text-[#ef4444]'); statusText.classList.add('text-[#4a7a2e]');
+            });
+
+            function sparkleBurst() {
+                if (reduceMotion) return;
+                const cx = 225, cy = 60, count = 10;
+                for (let i = 0; i < count; i++) {
+                    const s = document.createElementNS(SVGNS, "circle");
+                    s.setAttribute("cx", cx); s.setAttribute("cy", cy);
+                    s.setAttribute("r", gsap.utils.random(2, 4.5));
+                    s.setAttribute("fill", i % 2 ? "#fde047" : "#ffffff");
+                    sparkleLayer.appendChild(s);
+                    const angle = (i / count) * Math.PI * 2, dist = gsap.utils.random(40, 78);
+                    gsap.fromTo(s, { opacity: 1, scale: 1, transformOrigin: "center center" },
+                        { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist, opacity: 0, scale: 0.2,
+                          duration: gsap.utils.random(0.5, 0.9), ease: "power2.out", onComplete: () => s.remove() });
+                }
+            }
+
+            // Click = a full jump-for-joy with both arms pumping.
+            wrapper.addEventListener('click', () => {
+                if (gsap.isTweening(wrapper)) return;
+                const tl = gsap.timeline();
+                tl.to(wrapper, { scaleX: 1.12, scaleY: 0.88, y: 8, duration: 0.13, ease: "power2.in" });
+                tl.to(wrapper, { keyframes: [
+                    { scaleX: 0.9, scaleY: 1.14, y: -60, duration: 0.3, ease: "power2.out" },
+                    { scaleX: 1.06, scaleY: 0.94, y: 0, duration: 0.3, ease: "power2.in" },
+                    { scaleX: 1, scaleY: 1, duration: 0.55, ease: "elastic.out(1, 0.4)" }
+                ]}, ">-0.02");
+                tl.to([rightArm, leftArm], { rotation: (i) => i === 0 ? 30 : -30, duration: 0.2, ease: "back.out(3)" }, "<")
+                  .to([rightArm, leftArm], { rotation: 0, duration: 0.6, ease: "elastic.out(1.1, 0.4)" }, ">-0.05");
+                if (!reduceMotion) gsap.fromTo(cape, { rotation: 0 }, { rotation: -16, duration: 0.3, ease: "power2.out", yoyo: true, repeat: 1 });
+                tl.add(() => {
+                    gsap.fromTo(bolt, { filter: "brightness(2.3) drop-shadow(0px 0px 34px rgba(255,255,255,1))" }, { filter: "none", duration: 0.9, ease: "power2.out" });
+                    gsap.fromTo(bolt, { scale: 1.35 }, { scale: 1.1, duration: 0.6, ease: "elastic.out(1, 0.45)" });
+                    sparkleBurst(); sparkleBurst();
+                }, 0.26);
+                statusText.innerText = "You did it!";
+                gsap.delayedCall(2, () => { statusText.innerText = "Great news!"; });
+            });
+        });
+    </script>
+</body></html>
