@@ -8,7 +8,7 @@ import type { PipelineResult, Routing, Sidecar, FilingStep } from "@/engine/type
 import type { AssembledInstrument } from "@/engine/instruments";
 import { getTierRouting, CIRCLES } from "@/engine/routing";
 import { SelectField } from "./fields";
-import { useT } from "@/i18n/context";
+import { useT, useLanguage } from "@/i18n/context";
 import { analytics } from "@/lib/analytics";
 
 // Guidance / Submit screen (spec D18, story 8). Shows, for the selected rung, WHERE and HOW to file:
@@ -199,17 +199,22 @@ function RoutingCard({
   tier?: string;
 }) {
   const t = useT();
+  const { lang } = useLanguage();
+  const forumName = lang === "mr" ? (routing.forumNameMr ?? routing.forumName) : routing.forumName;
+  const channel = lang === "mr" ? (routing.channelMr ?? routing.channel) : routing.channel;
+  const slaText = lang === "mr" ? (routing.slaTextMr ?? routing.slaText) : routing.slaText;
+
   return (
     <Card eyebrow={eyebrow} title={title} accent={accent}>
       <div style={{ marginBottom: "var(--space-4)" }}>
         <Badge variant={confidence} />
       </div>
       <dl style={{ margin: 0 }}>
-        <Detail term={t("guidance.forum")}>{routing.forumName}</Detail>
-        {routing.channel && <Detail term={t("guidance.howToFile")}>{routing.channel}</Detail>}
+        <Detail term={t("guidance.forum")}>{forumName}</Detail>
+        {channel && <Detail term={t("guidance.howToFile")}>{channel}</Detail>}
         {routing.address && <Detail term={t("guidance.address")}>{routing.address}</Detail>}
         {routing.contact && <Detail term={t("guidance.contact")}>{routing.contact}</Detail>}
-        {routing.slaText && <Detail term={t("guidance.timeline")}>{routing.slaText}</Detail>}
+        {slaText && <Detail term={t("guidance.timeline")}>{slaText}</Detail>}
       </dl>
       {routing.filingSteps && routing.filingSteps.length > 0 && (
         <FilingSteps
@@ -249,6 +254,7 @@ export function GuidanceStep({
   onRestart: () => void;
 }) {
   const t = useT();
+  const { lang } = useLanguage();
   const tier = result.tier;
   // Circle only changes the CGRF tier; getTierRouting returns the same constant for the others and a
   // circle-agnostic generic CGRF when the circle is unknown (never a wrong-forum guess).
@@ -309,8 +315,8 @@ export function GuidanceStep({
 
       {tier && tierRouting ? (
         <RoutingCard
-          eyebrow={tier.instrumentName}
-          title={tierRouting.forumName}
+          eyebrow={lang === "mr" ? (tier.instrumentNameMr ?? tier.instrumentName) : tier.instrumentName}
+          title={lang === "mr" ? (tierRouting.forumNameMr ?? tierRouting.forumName) : tierRouting.forumName}
           accent="blue"
           routing={tierRouting}
           confidence={tier.confidence}
@@ -329,7 +335,7 @@ export function GuidanceStep({
       {rtiSidecar?.routing && (
         <RoutingCard
           eyebrow={t("guidance.optionalEvidence")}
-          title={rtiSidecar.name}
+          title={lang === "mr" ? (rtiSidecar.nameMr ?? rtiSidecar.name) : rtiSidecar.name}
           accent="yellow"
           routing={rtiSidecar.routing}
           confidence={rtiSidecar.confidence}

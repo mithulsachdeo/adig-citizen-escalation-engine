@@ -1,12 +1,14 @@
 import React from "react";
+import { useT } from "@/i18n/context";
 
 // Addendum §1: verified/draft trust badge. Icon + text label ALWAYS — never color alone.
 // `verified` = primary-source-checked by us, NOT lawyer-confirmed.
 export type Confidence = "verified" | "draft";
 
 export function Badge({ variant, children }: { variant: Confidence; children?: React.ReactNode }) {
+  const t = useT();
   const verified = variant === "verified";
-  const label = children ?? (verified ? "Verified" : "Draft — confirm before sending");
+  const label = children ?? t(verified ? "common.verified" : "common.draftConfirm");
   return (
     <span
       style={{

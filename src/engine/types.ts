@@ -202,12 +202,15 @@ export interface FilingStep {
 export interface Routing {
   /** Forum/office name, e.g. "Consumer Grievance Redressal Forum, MSEDCL (Pune)". */
   forumName: string;
+  forumNameMr?: string;
   /** Submission channel, e.g. "wss.mahadiscom.in/ICRS/", "1912", "in person / post / email". */
   channel?: string;
+  channelMr?: string;
   address?: string;
   contact?: string;
   /** Service-level / timeline text for this tier. */
   slaText?: string;
+  slaTextMr?: string;
   /** Contact is volatile — pull live at runtime rather than trust the stored value (spec: CGRF phone/email). */
   verifyAtSource?: boolean;
   /** Ordered "how to file" walkthrough for this forum. Optional; omit for forums without one. */
@@ -245,6 +248,7 @@ export interface Tier {
   instrument: string;
   /** Display name for the instrument. */
   instrumentName: string;
+  instrumentNameMr?: string;
   tierTemplate: PerLanguage<TierTemplate>;
   legalGrounds: LegalGround[];
   routing: Routing;
@@ -262,6 +266,7 @@ export interface Tier {
 export interface Sidecar {
   id: string;
   name: string;
+  nameMr?: string;
   availableAtAnyTier: boolean;
   tierTemplate?: PerLanguage<TierTemplate>;
   legalGrounds?: LegalGround[];

@@ -22,6 +22,8 @@ export const mr: Strings = {
     checkAnother: "दुसरे बिल तपासा",
     getMyDocument: "माझा अर्ज मिळवा",
     select: "निवडा…",
+    verified: "पडताळलेले",
+    draftConfirm: "मसुदा — पाठवण्यापूर्वी खात्री करा",
   },
   switcher: {
     en: "EN",

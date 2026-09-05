@@ -20,6 +20,8 @@ export const en = {
     checkAnother: "Check another bill",
     getMyDocument: "Get my document",
     select: "Select…",
+    verified: "Verified",
+    draftConfirm: "Draft — confirm before sending",
   },
   switcher: {
     // Shown identically in both languages (they are language names), but kept here for one source of truth.

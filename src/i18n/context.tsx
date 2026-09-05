@@ -14,9 +14,15 @@ type LanguageContextValue = { lang: Language; setLang: (l: Language) => void };
 
 const LanguageContext = createContext<LanguageContextValue>({ lang: "en", setLang: () => {} });
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  // Always start at "en" so server and first client render agree; hydrate the saved choice after mount.
-  const [lang, setLangState] = useState<Language>("en");
+export function LanguageProvider({
+  children,
+  initialLang = "en",
+}: {
+  children: React.ReactNode;
+  initialLang?: Language;
+}) {
+  // Always start at "en" (or initialLang) so server and first client render agree; hydrate the saved choice after mount.
+  const [lang, setLangState] = useState<Language>(initialLang);
 
   useEffect(() => {
     try {

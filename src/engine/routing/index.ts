@@ -86,10 +86,15 @@ const RTI_FILING_STEPS: FilingStep[] = [
 
 export const ICRS_ROUTING: Routing = {
   forumName: "MSEDCL division office — Internal Complaint Redressal System (ICRS)",
+  forumNameMr: "महावितरण विभाग कार्यालय — अंतर्गत तक्रार निवारण प्रणाली (ICRS)", // MR: machine-drafted — pending native review
   channel:
     "Online at wss.mahadiscom.in/ICRS/, toll-free 1912, by SMS/mobile app, or in person at your division office",
+  channelMr:
+    "wss.mahadiscom.in/ICRS/ वर ऑनलाइन, टोल-फ्री १९१२ वर, एसएमएस/मोबाईल ॲपद्वारे, किंवा तुमच्या विभाग कार्यालयात प्रत्यक्ष", // MR: machine-drafted — pending native review
   slaText:
     "Resolution within 15 working days for billing complaints (3 working days for supply/connection matters).",
+  slaTextMr:
+    "बिलिंग तक्रारींसाठी १५ कामकाजाच्या दिवसांत निवारण (पुरवठा/जोडणीच्या बाबींसाठी ३ कामकाजाचे दिवस).", // MR: machine-drafted — pending native review
   verifyAtSource: true, // confirm the live ICRS portal path / whether a written division complaint is still accepted
   filingSteps: ICRS_FILING_STEPS,
 };
@@ -102,13 +107,17 @@ export const ICRS_ROUTING: Routing = {
 // 11 emails under time pressure. All share the same channel/timeline/steps, so a factory removes the
 // 11-way duplication. -----
 
-function cgrf(forumName: string, address: string): Routing {
+function cgrf(forumName: string, address: string, forumNameMr?: string): Routing {
   return {
     forumName,
+    forumNameMr,
     channel: "In person, by post, by email, or via the CGRF web portal",
+    channelMr: "प्रत्यक्ष, टपालाने, ईमेलद्वारे किंवा CGRF वेब पोर्टलद्वारे", // MR: machine-drafted — pending native review
     address,
     slaText:
       "File within 2 years of the cause of action; the Forum issues its order within 60 working days.",
+    slaTextMr:
+      "कारवाईचे कारण घडल्यापासून २ वर्षांच्या आत दाखल करा; मंच ६० कामकाजाच्या दिवसांत आपला आदेश जारी करतो.", // MR: machine-drafted — pending native review
     verifyAtSource: true,
     filingSteps: CGRF_FILING_STEPS,
   };
@@ -116,48 +125,59 @@ function cgrf(forumName: string, address: string): Routing {
 
 export const CGRF_BHANDUP_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Bhandup)",
-  "Vidhyut, Ground floor, L.B.S. Marg, Near Asian Paint, Bhandup, Mumbai-400078"
+  "Vidhyut, Ground floor, L.B.S. Marg, Near Asian Paint, Bhandup, Mumbai-400078",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (भांडुप)" // MR: machine-drafted — pending native review
 );
 export const CGRF_KOLHAPUR_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Kolhapur)",
-  "Administrative Building, Tarabai Park, Kolhapur-416003"
+  "Administrative Building, Tarabai Park, Kolhapur-416003",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (कोल्हापूर)" // MR: machine-drafted — pending native review
 );
 export const CGRF_NASHIK_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Nashik)",
-  "Type II Quarter No.3, 1st floor, Vidyut Bhavan Premises, Bytco Point, Nashik Road-422101"
+  "Type II Quarter No.3, 1st floor, Vidyut Bhavan Premises, Bytco Point, Nashik Road-422101",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (नाशिक)" // MR: machine-drafted — pending native review
 );
 export const CGRF_CSN_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Chh. Sambhaji Nagar)",
-  "Vidhyut Bhawan, Dr. Babasaheb Ambedkar Marg, Chhatrapati Sambhaji Nagar-431001"
+  "Vidhyut Bhawan, Dr. Babasaheb Ambedkar Marg, Chhatrapati Sambhaji Nagar-431001",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (छ. संभाजी नगर)" // MR: machine-drafted — pending native review
 );
 export const CGRF_AMRAVATI_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Amravati)",
-  "Vidyut Bhawan, Shivaji Nagar, Camp Area, Amravati-444603"
+  "Vidyut Bhawan, Shivaji Nagar, Camp Area, Amravati-444603",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (अमरावती)" // MR: machine-drafted — pending native review
 );
 export const CGRF_PUNE_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Pune)",
-  "925, Kasaba Peth, Administrative Building, 2nd floor, Pune-411011"
+  "925, Kasaba Peth, Administrative Building, 2nd floor, Pune-411011",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (पुणे)" // MR: machine-drafted — pending native review
 );
 export const CGRF_NAGPUR_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Nagpur)",
-  "Prakash Bhawan, Link Road, Gaddi Gudam, Sadar, Nagpur-440001"
+  "Prakash Bhawan, Link Road, Gaddi Gudam, Sadar, Nagpur-440001",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (नागपूर)" // MR: machine-drafted — pending native review
 );
 export const CGRF_KALYAN_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Kalyan)",
-  "Behind Tejashree Building, Jahangir Maidan, Karnik Road, Kalyan-421301"
+  "Behind Tejashree Building, Jahangir Maidan, Karnik Road, Kalyan-421301",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (कल्याण)" // MR: machine-drafted — pending native review
 );
 export const CGRF_BARAMATI_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Baramati)",
-  "URJA Bhavan, Bhigwan Road, Baramati-413102"
+  "URJA Bhavan, Bhigwan Road, Baramati-413102",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (बारामती)" // MR: machine-drafted — pending native review
 );
 export const CGRF_AKOLA_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Akola)",
-  "Vidyut Bhawan, Ratanlal Plot, Ground Floor, Durga Chowk, Akola-444005"
+  "Vidyut Bhawan, Ratanlal Plot, Ground Floor, Durga Chowk, Akola-444005",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (अकोला)" // MR: machine-drafted — pending native review
 );
 export const CGRF_VASAI_ROUTING = cgrf(
   "Consumer Grievance Redressal Forum, MSEDCL (Vasai)",
   // 2024-PDF value; a second (uncited/older) source says "Deepshree Building" — verify at source.
-  "Bldg. No. 18, Flat No. 5, 2nd Floor, MSEB Colony, Navghar, Dist. Palghar, Vasai East-401202"
+  "Bldg. No. 18, Flat No. 5, 2nd Floor, MSEB Colony, Navghar, Dist. Palghar, Vasai East-401202",
+  "ग्राहक तक्रार निवारण मंच, महावितरण (वसई)" // MR: machine-drafted — pending native review
 );
 
 /**
@@ -167,9 +187,13 @@ export const CGRF_VASAI_ROUTING = cgrf(
  */
 export const CGRF_GENERIC_ROUTING: Routing = {
   forumName: "Consumer Grievance Redressal Forum (CGRF) for your MSEDCL Circle",
+  forumNameMr: "तुमच्या महावितरण मंडळासाठी ग्राहक तक्रार निवारण मंच (CGRF)", // MR: machine-drafted — pending native review
   channel: "In person, by post, by email, or via the CGRF web portal",
+  channelMr: "प्रत्यक्ष, टपालाने, ईमेलद्वारे किंवा CGRF वेब पोर्टलद्वारे", // MR: machine-drafted — pending native review
   slaText:
     "File within 2 years of the cause of action; the Forum issues its order within 60 working days.",
+  slaTextMr:
+    "कारवाईचे कारण घडल्यापासून २ वर्षांच्या आत दाखल करा; मंच ६० कामकाजाच्या दिवसांत आपला आदेश जारी करतो.", // MR: machine-drafted — pending native review
   verifyAtSource: true,
   filingSteps: CGRF_GENERIC_FILING_STEPS,
 };
@@ -237,12 +261,16 @@ export const CIRCLES: CircleOption[] = [
 
 export const OMBUDSMAN_MUMBAI_ROUTING: Routing = {
   forumName: "Electricity Ombudsman (Mumbai)",
+  forumNameMr: "विद्युत लोकपाल (मुंबई)", // MR: machine-drafted — pending native review
   channel: "By post or in person; enclose 3 copies of all documents",
+  channelMr: "टपालाने किंवा प्रत्यक्ष; सर्व कागदपत्रांच्या ३ प्रती जोडा", // MR: machine-drafted — pending native review
   address:
     "606–608, 6th Floor, Keshava Building, Bandra Kurla Complex, Bandra (East), Mumbai-400051",
   contact: "022-26592965 / 022-30680528 · electricityombudsmanmumbai@gmail.com",
   slaText:
     "Represent within 60 days of the CGRF order — only if the CGRF rejected it, did not decide in time, or caused undue delay.",
+  slaTextMr:
+    "CGRF आदेशाच्या ६० दिवसांच्या आत निवेदन दाखल करा — फक्त जर CGRF ने ते नाकारले असेल, वेळेत निर्णय दिला नसेल, किंवा अवाजवी विलंब केला असेल.", // MR: machine-drafted — pending native review
   verifyAtSource: true, // re-confirm the postal address (2020 Annexure B value)
   filingSteps: OMBUDSMAN_FILING_STEPS,
 };
@@ -252,11 +280,16 @@ export const OMBUDSMAN_MUMBAI_ROUTING: Routing = {
 export const RTI_ROUTING: Routing = {
   forumName:
     "Public Information Officer (PIO) of your own MSEDCL sub-division / division — the office named on your bill",
+  forumNameMr:
+    "तुमच्या स्वतःच्या महावितरण उपविभाग / विभागाचे जन माहिती अधिकारी (PIO) — तुमच्या बिलावर नमूद केलेले कार्यालय", // MR: machine-drafted — pending native review
   channel: "By post or in person to the division PIO under the Right to Information Act, 2005",
+  channelMr: "माहिती अधिकार कायदा, २००५ अंतर्गत विभाग PIO कडे टपालाने किंवा प्रत्यक्ष", // MR: machine-drafted — pending native review
   contact:
     "Zone fallback: Executive Engineer, Chief Engineer Office, Pune Zone, Administrative Building, Rastapeth, Pune-411011 · cepuneurban@mahadiscom.in / seganeshkhind@mahadiscom.in · 020-26061389",
   slaText:
     "The PIO replies within 30 days; a First Appeal lies to the FAA within 30 days. Note: the RTI fee changed under the 2026 Rules — confirm the current fee and payment mode before sending.",
+  slaTextMr:
+    "PIO ३० दिवसांच्या आत उत्तर देतात; ३० दिवसांच्या आत प्रथम अपीलीय प्राधिकरणाकडे (FAA) पहिले अपील करता येते. टीप: २०२६ च्या नियमांनुसार माहिती अधिकार शुल्क बदलले आहे — पाठवण्यापूर्वी सध्याचे शुल्क आणि पेमेंट पद्धत तपासा.", // MR: machine-drafted — pending native review
   verifyAtSource: true,
   filingSteps: RTI_FILING_STEPS,
 };

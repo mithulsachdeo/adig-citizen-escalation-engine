@@ -115,6 +115,7 @@ const icrs: Tier = {
   order: 1,
   instrument: "icrs",
   instrumentName: "Internal complaint to MSEDCL (ICRS)",
+  instrumentNameMr: "महावितरण अंतर्गत तक्रार (ICRS)", // MR: machine-drafted — pending native review
   stage: "new",
   requiresPriorTierRef: false,
   confidence: "verified",
@@ -129,6 +130,7 @@ const cgrfScheduleA: Tier = {
   order: 2,
   instrument: "cgrf-schedule-a",
   instrumentName: "Application to CGRF (Schedule A)",
+  instrumentNameMr: "ग्राहक तक्रार निवारण मंच (CGRF) कडे अर्ज (अनुसूची अ)", // MR: machine-drafted — pending native review
   stage: "icrs_ignored",
   requiresPriorTierRef: true, // must cite the prior ICRS complaint (spec story 10)
   confidence: "verified",
@@ -145,6 +147,7 @@ const ombudsmanScheduleB: Tier = {
   order: 3,
   instrument: "ombudsman-schedule-b",
   instrumentName: "Representation to Electricity Ombudsman (Schedule B)",
+  instrumentNameMr: "विद्युत लोकपाल यांच्याकडे निवेदन (अनुसूची ब)", // MR: machine-drafted — pending native review
   stage: "cgrf_rejected",
   requiresPriorTierRef: true, // needs the CGRF order reference (spec story 10)
   confidence: "verified",
@@ -162,6 +165,7 @@ const escalationLadder: Tier[] = [icrs, cgrfScheduleA, ombudsmanScheduleB];
 const rtiSidecar: Sidecar = {
   id: "rti",
   name: "RTI application for meter / reading logs",
+  nameMr: "मीटर / रीडिंग नोंदींसाठी माहिती अधिकाराचा (RTI) अर्ज", // MR: machine-drafted — pending native review
   availableAtAnyTier: true,
   confidence: "draft", // routing model verified, but MH RTI fee (Rs10→Rs30, 2026 Rules) unconfirmed
   tierTemplate: {
