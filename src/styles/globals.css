@@ -47,6 +47,8 @@ h3 { font: var(--text-h3); }
 
 /* ---- Layout helper ---- */
 .adig-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 640px;
   margin-inline: auto;
@@ -102,7 +104,7 @@ h3 { font: var(--text-h3); }
     border-bottom: 2px solid #000 !important;
     font-size: 12pt !important;
   }
-  nav, .mascot, .app-chrome, button { display: none !important; }
+  nav, .mascot, .adig-gutter-watermarks, .app-chrome, button { display: none !important; }
 }
 
 /* ---- Mascot motion (impeccable /animate) — all transform/opacity, GPU-cheap ---- */
@@ -171,6 +173,58 @@ h3 { font: var(--text-h3); }
   .adig-mascot__img, .adig-mascot__beat, .adig-mascot__spark { animation: none !important; }
   .adig-mascot__img { transition: none; opacity: 1 !important; }
   .adig-mascot__spark { display: none; }
+}
+
+/* ---- Decorative side-gutter watermarks (/check flow only) ---- */
+.adig-gutter-watermarks {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .adig-gutter-watermarks {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .adig-gutter-watermark {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: calc((100vw - 760px) / 2);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    color: var(--brand-green-ink);
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  .adig-gutter-watermark--left {
+    left: 0;
+    align-items: flex-end;
+  }
+
+  .adig-gutter-watermark--right {
+    right: 0;
+    align-items: center;
+  }
+
+  .adig-gutter-watermark__mascot {
+    width: min(calc((100vw - 760px) / 2 - 16px), 240px);
+    height: auto;
+    aspect-ratio: 280 / 360;
+    transform: translateY(20%);
+    flex-shrink: 0;
+  }
+
+  .adig-gutter-watermark__bolt {
+    width: min(calc((100vw - 760px) / 2 - 16px), 240px);
+    height: 120vh;
+    flex-shrink: 0;
+  }
 }
 
 /* ---- Intro curtain (session-gated brand reveal: bolt strikes → monogram charges → green wipe) ---- */
