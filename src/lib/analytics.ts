@@ -7,8 +7,10 @@
 //     cannot leak PII through it.
 //   - The distinct id is a random, in-memory, per-session value — it is not persisted anywhere and
 //     does not survive a reload, so no one is tracked across sessions.
-//   - Transport: if NEXT_PUBLIC_MIXPANEL_TOKEN is set we POST to Mixpanel's HTTP API (no SDK / no
-//     external script, so nothing extra loads); otherwise a no-op shim that console-logs in dev only.
+//   - Transport: dual sinks running in parallel (no external SDKs, zero scripts to load):
+//       * Mixpanel HTTP API if NEXT_PUBLIC_MIXPANEL_TOKEN is set
+//       * PostHog HTTP API if NEXT_PUBLIC_POSTHOG_KEY is set (host defaults to https://us.i.posthog.com)
+//     If neither is set, a no-op shim console-logs in development only.
 //
 // The module is import-safe on the server (Next may evaluate it during SSR): every browser API is
 // guarded, and events are only actually dispatched in the browser.
@@ -19,6 +21,8 @@ export type AnalyticsProps = Record<string, string | number | boolean>;
 type Sink = (event: string, props: AnalyticsProps) => void;
 
 const MIXPANEL_TOKEN = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 /**
@@ -38,19 +42,21 @@ export function bucketOvercharge(rupees: number): string {
 // ---- Transport ---------------------------------------------------------------------------------
 
 let distinctId: string | null = null;
-function getDistinctId(): string {
+export function getDistinctId(): string {
   if (distinctId) return distinctId;
   const c = typeof globalThis !== "undefined" ? (globalThis.crypto as Crypto | undefined) : undefined;
   distinctId = c?.randomUUID ? c.randomUUID() : `anon-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return distinctId;
 }
 
-function mixpanelSink(event: string, props: AnalyticsProps): void {
+export function mixpanelSink(event: string, props: AnalyticsProps): void {
   try {
+    const token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || MIXPANEL_TOKEN;
+    if (!token) return;
     const payload = {
       event,
       properties: {
-        token: MIXPANEL_TOKEN,
+        token,
         distinct_id: getDistinctId(),
         time: Date.now(),
         ...props,
@@ -69,12 +75,55 @@ function mixpanelSink(event: string, props: AnalyticsProps): void {
   }
 }
 
-function defaultSink(event: string, props: AnalyticsProps): void {
+export function posthogSink(event: string, props: AnalyticsProps): void {
+  try {
+    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY || POSTHOG_KEY;
+    if (!key) return;
+    if (typeof window === "undefined") return; // browser only, no SSR
+
+    const rawHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || POSTHOG_HOST || "https://us.i.posthog.com";
+    const host = rawHost.replace(/\/+$/, "");
+    const url = `${host}/capture/`;
+    const payload = {
+      api_key: key,
+      event,
+      distinct_id: getDistinctId(),
+      properties: {
+        ...props,
+      },
+    };
+    const body = JSON.stringify(payload);
+
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon(url, blob);
+    } else if (typeof fetch !== "undefined") {
+      void fetch(url, {
+        method: "POST",
+        keepalive: true,
+        headers: { "content-type": "application/json" },
+        body,
+      });
+    }
+  } catch {
+    // Analytics must never break the flow — swallow everything.
+  }
+}
+
+export function defaultSink(event: string, props: AnalyticsProps): void {
   if (typeof window === "undefined") return; // never fire during SSR
-  if (MIXPANEL_TOKEN) {
+
+  const mixpanelToken = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || MIXPANEL_TOKEN;
+  const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY || POSTHOG_KEY;
+
+  if (mixpanelToken) {
     mixpanelSink(event, props);
-  } else if (IS_DEV) {
-    // No token: a visible no-op so the wiring is auditable in development.
+  }
+  if (posthogKey) {
+    posthogSink(event, props);
+  }
+  if (!mixpanelToken && !posthogKey && IS_DEV) {
+    // Neither token set: a visible no-op so the wiring is auditable in development.
     // eslint-disable-next-line no-console
     console.debug("[analytics]", event, props);
   }

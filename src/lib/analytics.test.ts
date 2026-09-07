@@ -1,5 +1,13 @@
-import { test, expect, beforeEach, afterEach } from "vitest";
-import { analytics, bucketOvercharge, _setSinkForTest, type AnalyticsProps } from "./analytics";
+import { test, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  analytics,
+  bucketOvercharge,
+  _setSinkForTest,
+  posthogSink,
+  defaultSink,
+  getDistinctId,
+  type AnalyticsProps,
+} from "./analytics";
 
 type Captured = { event: string; props: AnalyticsProps };
 let events: Captured[] = [];
@@ -251,3 +259,153 @@ test("no event exposes PII-shaped keys", () => {
     }
   }
 });
+
+// ---- PostHog sink unit tests (mirroring mixpanelSink) -------------------------------------------
+
+test("posthogSink captures to ${HOST}/capture/ via sendBeacon with correct payload when key is set", async () => {
+  const originalKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const originalHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+
+  try {
+    const sendBeaconMock = vi.fn().mockReturnValue(true);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", { sendBeacon: sendBeaconMock });
+
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = "phc_test_key_123";
+    process.env.NEXT_PUBLIC_POSTHOG_HOST = "https://eu.i.posthog.com/";
+
+    posthogSink("intake_started", { tier: "icrs" });
+
+    expect(sendBeaconMock).toHaveBeenCalledTimes(1);
+    const [url, blob] = sendBeaconMock.mock.calls[0];
+    expect(url).toBe("https://eu.i.posthog.com/capture/");
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toBe("application/json");
+
+    const payload = JSON.parse(await blob.text());
+    expect(payload).toEqual({
+      api_key: "phc_test_key_123",
+      event: "intake_started",
+      distinct_id: getDistinctId(),
+      properties: {
+        tier: "icrs",
+      },
+    });
+    // Server-side timestamp: ensure no client timestamp is attached
+    expect(payload).not.toHaveProperty("time");
+    expect(payload).not.toHaveProperty("timestamp");
+  } finally {
+    vi.unstubAllGlobals();
+    if (originalKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalKey;
+    if (originalHost === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_HOST;
+    else process.env.NEXT_PUBLIC_POSTHOG_HOST = originalHost;
+  }
+});
+
+test("posthogSink falls back to fetch when sendBeacon is not available", async () => {
+  const originalKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const originalHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+
+  try {
+    const fetchMock = vi.fn().mockResolvedValue(new Response());
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("fetch", fetchMock);
+
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = "phc_test_key_456";
+    delete process.env.NEXT_PUBLIC_POSTHOG_HOST;
+
+    posthogSink("hero_passed", {});
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://us.i.posthog.com/capture/");
+    expect(options.method).toBe("POST");
+    expect(options.keepalive).toBe(true);
+    expect(options.headers).toEqual({ "content-type": "application/json" });
+
+    const payload = JSON.parse(options.body);
+    expect(payload).toEqual({
+      api_key: "phc_test_key_456",
+      event: "hero_passed",
+      distinct_id: getDistinctId(),
+      properties: {},
+    });
+  } finally {
+    vi.unstubAllGlobals();
+    if (originalKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalKey;
+    if (originalHost === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_HOST;
+    else process.env.NEXT_PUBLIC_POSTHOG_HOST = originalHost;
+  }
+});
+
+test("posthogSink no-ops safely when NEXT_PUBLIC_POSTHOG_KEY is absent", () => {
+  const originalKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
+  try {
+    const sendBeaconMock = vi.fn();
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", { sendBeacon: sendBeaconMock });
+
+    delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
+    posthogSink("landing_viewed", {});
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+  } finally {
+    vi.unstubAllGlobals();
+    if (originalKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalKey;
+  }
+});
+
+test("posthogSink no-ops during SSR (when window is undefined)", () => {
+  const originalKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
+  try {
+    const sendBeaconMock = vi.fn();
+    vi.stubGlobal("window", undefined);
+    vi.stubGlobal("navigator", { sendBeacon: sendBeaconMock });
+
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = "phc_test_key";
+
+    posthogSink("landing_viewed", {});
+
+    expect(sendBeaconMock).not.toHaveBeenCalled();
+  } finally {
+    vi.unstubAllGlobals();
+    if (originalKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalKey;
+  }
+});
+
+test("defaultSink dispatches to both Mixpanel and PostHog independently when both keys are set", () => {
+  const originalMixpanelKey = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
+  const originalPosthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
+  try {
+    const sendBeaconMock = vi.fn().mockReturnValue(true);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", { sendBeacon: sendBeaconMock });
+
+    process.env.NEXT_PUBLIC_MIXPANEL_TOKEN = "mp_test_token";
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = "phc_test_key";
+
+    defaultSink("intake_started", { tier: "icrs" });
+
+    // Both sinks dispatched independently
+    expect(sendBeaconMock).toHaveBeenCalledTimes(2);
+    const urls = sendBeaconMock.mock.calls.map((call) => call[0]);
+    expect(urls.some((u) => u.includes("api.mixpanel.com"))).toBe(true);
+    expect(urls.some((u) => u.includes("posthog.com"))).toBe(true);
+  } finally {
+    vi.unstubAllGlobals();
+    if (originalMixpanelKey === undefined) delete process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
+    else process.env.NEXT_PUBLIC_MIXPANEL_TOKEN = originalMixpanelKey;
+    if (originalPosthogKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalPosthogKey;
+  }
+});
+
