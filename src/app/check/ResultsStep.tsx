@@ -164,7 +164,18 @@ export function ResultsStep({
   const mascotExpression: MascotExpression = relieved ? "happy" : rallying ? "helping" : "neutral";
   const mascotReaction: MascotReaction = relieved ? "hop" : rallying ? "tilt" : "none";
 
-  const showWorkingToggle = !unsupported && !noPriceableData && calculation != null && actionable && overcharge > 0;
+  const isLegitimateVerification =
+    !actionable &&
+    diagnosis.classification === "legitimate" &&
+    calculation != null &&
+    !unsupported &&
+    !noPriceableData;
+
+  const showWorkingToggle =
+    !unsupported &&
+    !noPriceableData &&
+    calculation != null &&
+    ((actionable && overcharge > 0) || isLegitimateVerification);
 
   return (
     <div className="adig-stack">
@@ -207,18 +218,67 @@ export function ResultsStep({
         <Alert tone="warning" title={t("results.outsideTitle")}>
           {t("results.outsideBody")}
         </Alert>
+      ) : actionable && calculation ? (
+        <div className="adig-stack-sm">
+          {calculation.energyChargeMismatch && (
+            <Alert tone="warning" title={t("results.mismatchTitle")}>
+              {t("results.mismatchBody")}
+            </Alert>
+          )}
+
+          <CostBreakdown
+            label={overcharge > 0 ? t("results.costLikely") : t("results.costOvercharge")}
+            total={Math.round(overcharge)}
+            items={[
+              { label: t("results.energyBilled"), amount: Math.round(calculation.actualEnergyCharge) },
+              { label: t("results.energyLawful"), amount: Math.round(calculation.lawfulEnergyCharge) },
+            ]}
+            caption={lang === "mr" ? t("results.estimateCaveat") : calculation.estimateCaveat}
+          />
+
+          {showWorkingToggle && (
+            <div style={{ background: "var(--canvas-raised)", border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "var(--space-4) var(--space-5)" }}>
+              <button
+                type="button"
+                onClick={() => setShowWorking((s) => !s)}
+                aria-expanded={showWorking}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, width: "100%",
+                  background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                  font: "var(--text-small)", fontWeight: 700, color: "var(--ink)", minHeight: 32,
+                }}
+              >
+                <Chevron open={showWorking} />
+                {showWorking ? t("results.hideWorking") : t("results.seeWorking")}
+              </button>
+              {showWorking && <SlabWorking calc={calculation} />}
+            </div>
+          )}
+
+          {partialCoverage && (
+            <Alert tone="warning" title={t("results.partialTitle")}>
+              {t("results.partialBody", { label: calculation.tableLabel })}
+            </Alert>
+          )}
+        </div>
       ) : (
-        actionable && calculation && (
+        isLegitimateVerification && (
           <div className="adig-stack-sm">
-            {calculation.energyChargeMismatch && (
+            <p style={{ font: "var(--text-small)", color: "var(--ink-faint)", margin: 0 }}>
+              {t("results.verifyScopeNote")}
+            </p>
+
+            {calculation.energyChargeMismatch ? (
               <Alert tone="warning" title={t("results.mismatchTitle")}>
                 {t("results.mismatchBody")}
               </Alert>
+            ) : (
+              <p style={{ font: "var(--text-body)", color: "var(--ink-soft)", margin: 0 }}>
+                {t("results.verifyConfirm", { tableLabel: calculation.tableLabel })}
+              </p>
             )}
 
             <CostBreakdown
-              label={overcharge > 0 ? t("results.costLikely") : t("results.costOvercharge")}
-              total={Math.round(overcharge)}
               items={[
                 { label: t("results.energyBilled"), amount: Math.round(calculation.actualEnergyCharge) },
                 { label: t("results.energyLawful"), amount: Math.round(calculation.lawfulEnergyCharge) },
@@ -243,12 +303,6 @@ export function ResultsStep({
                 </button>
                 {showWorking && <SlabWorking calc={calculation} />}
               </div>
-            )}
-
-            {partialCoverage && (
-              <Alert tone="warning" title={t("results.partialTitle")}>
-                {t("results.partialBody", { label: calculation.tableLabel })}
-              </Alert>
             )}
           </div>
         )

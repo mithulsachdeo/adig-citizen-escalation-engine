@@ -12,8 +12,8 @@ function input(overrides: Partial<UserInput> = {}): UserInput {
     unitsBilled: 100,
     periodFrom: "2026-06-01",
     periodTo: "2026-06-30",
-    amountBilled: 6000,
-    energyChargeBilled: 5000,
+    amountBilled: 1200,
+    energyChargeBilled: 396,
     readingType: "actual",
     category: "LT-I-B-residential",
     recentMeterSwap: false,
@@ -21,18 +21,17 @@ function input(overrides: Partial<UserInput> = {}): UserInput {
   };
 }
 
-describe("ResultsStep overcharge display gating", () => {
-  it("does not render 'Likely overcharge' or working toggle when bill is legitimate (not actionable)", () => {
-    // Normal ~30-day period with energyChargeBilled > lawful, so calculation.overcharge > 0,
-    // but diagnosis is legitimate (isActionable === false).
+describe("ResultsStep calculation display & verification gating (D46)", () => {
+  it("(a) legitimate + calculation → scope note + billed/lawful rows + working toggle + confirmation render", () => {
+    // Normal ~30-day bill where energyChargeBilled matches lawful calculation
     const userInput = input();
     const result = runVertical(msedclElectricitySpec, userInput);
 
-    // Assert fixture preconditions
+    // Preconditions
     expect(result.diagnosis.isActionable).toBe(false);
     expect(result.diagnosis.classification).toBe("legitimate");
     expect(result.calculation).not.toBeNull();
-    expect(result.calculation!.overcharge).toBeGreaterThan(0);
+    expect(result.calculation!.energyChargeMismatch).toBe(false);
 
     const html = renderToString(
       <LanguageProvider>
@@ -45,17 +44,134 @@ describe("ResultsStep overcharge display gating", () => {
       </LanguageProvider>
     );
 
-    // Assert bug is absent: no "Likely overcharge" and no "see the working" toggle
-    expect(html).not.toContain("Likely overcharge");
-    expect(html).not.toContain("See the full slab-by-slab working");
+    // Scope note leads the block
+    expect(html).toContain(
+      "This checks only the energy-charge portion of your bill — not fixed charges, FAC, duty or tax."
+    );
 
-    // Sanity: genuine diagnosis finding title and summary are still rendered
-    expect(html).toContain("This bill looks genuine");
-    expect(html).toContain(result.diagnosis.summary);
+    // Billed and lawful rows are shown
+    expect(html).toContain("Energy charge — as billed");
+    expect(html).toContain("Energy charge — lawful pro-rata");
+
+    // Positive confirmation message is shown citing the tariff table
+    expect(html).toContain(
+      `We re-priced your units against the ${result.calculation!.tableLabel} slabs and got the same lawful energy charge your DISCOM billed`
+    );
+
+    // Slab working toggle is available
+    expect(html).toContain("See the full slab-by-slab working");
+
+    // Must NOT frame as an overcharge or refund
+    expect(html).not.toContain("Likely overcharge");
+    expect(html).not.toContain("Energy charge check");
   });
 
-  it("renders 'Likely overcharge' and working toggle when bill is actionable (slab-jump)", () => {
-    // Slab-jump input: long period, actual reading, positive overcharge → isActionable === true
+  it("(b) unsupported → calculation-verification block does NOT render", () => {
+    const userInput = input({ category: "BPL" });
+    const result = runVertical(msedclElectricitySpec, userInput);
+
+    expect(result.diagnosis.classification).toBe("unsupported");
+    expect(result.calculation?.unsupported).toBe(true);
+
+    const html = renderToString(
+      <LanguageProvider>
+        <ResultsStep
+          result={result}
+          amountBilled={userInput.amountBilled}
+          onBack={() => {}}
+          onNext={() => {}}
+        />
+      </LanguageProvider>
+    );
+
+    // Unsupported alert is rendered
+    expect(html).toContain("This tariff isn&#x27;t supported yet");
+
+    // Verification block does NOT render
+    expect(html).not.toContain(
+      "This checks only the energy-charge portion of your bill"
+    );
+    expect(html).not.toContain("Energy charge — as billed");
+    expect(html).not.toContain("See the full slab-by-slab working");
+  });
+
+  it("(c) outside-tariff (noPriceableData) → does NOT render", () => {
+    const userInput = input({
+      periodFrom: "2018-01-01",
+      periodTo: "2018-01-30",
+    });
+    const result = runVertical(msedclElectricitySpec, userInput);
+
+    expect(result.calculation?.tableLabel).toBe("outside verified tariff data");
+
+    const html = renderToString(
+      <LanguageProvider>
+        <ResultsStep
+          result={result}
+          amountBilled={userInput.amountBilled}
+          onBack={() => {}}
+          onNext={() => {}}
+        />
+      </LanguageProvider>
+    );
+
+    // Outside-tariff alert is rendered
+    expect(html).toContain("Outside our verified tariff data");
+
+    // Verification block does NOT render
+    expect(html).not.toContain(
+      "This checks only the energy-charge portion of your bill"
+    );
+    expect(html).not.toContain("Energy charge — as billed");
+    expect(html).not.toContain("See the full slab-by-slab working");
+  });
+
+  it("(d) energyChargeMismatch true → mismatch nudge shown, confirmation hidden", () => {
+    // Normal ~30-day period with energyChargeBilled (5000) vastly differing from lawful (~588)
+    const userInput = input({
+      energyChargeBilled: 5000,
+      amountBilled: 6000,
+    });
+    const result = runVertical(msedclElectricitySpec, userInput);
+
+    expect(result.diagnosis.isActionable).toBe(false);
+    expect(result.diagnosis.classification).toBe("legitimate");
+    expect(result.calculation!.energyChargeMismatch).toBe(true);
+
+    const html = renderToString(
+      <LanguageProvider>
+        <ResultsStep
+          result={result}
+          amountBilled={userInput.amountBilled}
+          onBack={() => {}}
+          onNext={() => {}}
+        />
+      </LanguageProvider>
+    );
+
+    // Scope note is still shown
+    expect(html).toContain(
+      "This checks only the energy-charge portion of your bill — not fixed charges, FAC, duty or tax."
+    );
+
+    // Mismatch warning is shown
+    expect(html).toContain("Energy charge check");
+    expect(html).toContain(
+      "The energy charge you entered differs significantly from what the tariff slabs calculate for these units."
+    );
+
+    // Confirmation sentence is strictly hidden (honesty guard)
+    expect(html).not.toContain("We re-priced your units against the");
+
+    // Billed and lawful rows and working toggle remain visible
+    expect(html).toContain("Energy charge — as billed");
+    expect(html).toContain("Energy charge — lawful pro-rata");
+    expect(html).toContain("See the full slab-by-slab working");
+    expect(html).not.toContain("Likely overcharge");
+  });
+
+  it("(e) actionable path unchanged", () => {
+    // Slab-jump input: long period, actual reading, positive overcharge
     const userInput = input({
       unitsBilled: 150,
       periodFrom: "2026-04-01",
@@ -65,7 +181,6 @@ describe("ResultsStep overcharge display gating", () => {
     });
     const result = runVertical(msedclElectricitySpec, userInput);
 
-    // Assert fixture preconditions
     expect(result.diagnosis.isActionable).toBe(true);
     expect(result.calculation).not.toBeNull();
     expect(result.calculation!.overcharge).toBeGreaterThan(0);
@@ -81,8 +196,15 @@ describe("ResultsStep overcharge display gating", () => {
       </LanguageProvider>
     );
 
-    // Overcharge figure and breakdown should be present for actionable bills
+    // Actionable path shows Likely overcharge
     expect(html).toContain("Likely overcharge");
     expect(html).toContain("See the full slab-by-slab working");
+    expect(html).toContain("Energy charge — as billed");
+    expect(html).toContain("Energy charge — lawful pro-rata");
+
+    // Verification scope note is for legitimate, not actionable
+    expect(html).not.toContain(
+      "This checks only the energy-charge portion of your bill — not fixed charges, FAC, duty or tax."
+    );
   });
 });

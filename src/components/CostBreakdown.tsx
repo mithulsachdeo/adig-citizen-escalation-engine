@@ -11,25 +11,35 @@ export function CostBreakdown({
   caption,
 }: {
   items: CostItem[];
-  total: number;
+  total?: number;
   label?: string;
   caption?: string;
 }) {
   return (
     <div style={{ background: "var(--canvas-raised)", borderRadius: "var(--radius-md)", padding: "24px 28px", border: "1px solid var(--line)" }}>
-      {items.map((it) => (
+      {items.map((it, idx) => (
         <div
           key={it.label}
-          style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "8px 0", borderBottom: "1px solid var(--line)", font: "var(--text-body)", color: "var(--ink-soft)" }}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 16,
+            padding: "8px 0",
+            borderBottom: typeof total === "number" || idx < items.length - 1 ? "1px solid var(--line)" : "none",
+            font: "var(--text-body)",
+            color: "var(--ink-soft)",
+          }}
         >
           <span>{it.label}</span>
           <span style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>₹{it.amount.toLocaleString("en-IN")}</span>
         </div>
       ))}
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, paddingTop: 16, font: "var(--text-h2)", color: "var(--ink)" }}>
-        <span>{label}</span>
-        <span style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>₹{total.toLocaleString("en-IN")}</span>
-      </div>
+      {typeof total === "number" && (
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, paddingTop: 16, font: "var(--text-h2)", color: "var(--ink)" }}>
+          <span>{label}</span>
+          <span style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>₹{total.toLocaleString("en-IN")}</span>
+        </div>
+      )}
       {caption && (
         <p style={{ font: "var(--text-small)", color: "var(--ink-faint)", marginTop: 12 }}>{caption}</p>
       )}
