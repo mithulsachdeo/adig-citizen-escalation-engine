@@ -196,6 +196,26 @@ export const analytics = {
   letterObtained(tier: string, method: "download" | "copy_button" | "copy_event", screen: "documents" | "guidance"): void {
     track("letter_obtained", { tier: tier || "none", method, screen });
   },
+
+  /** A bill upload/extraction started in intake. */
+  billUploadStarted(): void {
+    track("bill_upload_started");
+  },
+
+  /** Bill extraction completed on-device. Coarse summary only, zero PII. */
+  extractionCompleted(source: "pdf" | "image", fieldsFilled: number, confidence: "high" | "medium" | "low"): void {
+    track("extraction_completed", { source, fields_filled: fieldsFilled, confidence });
+  },
+
+  /** Bill extraction failed on-device. `reason` is an error code only. */
+  extractionFailed(reason: string): void {
+    track("extraction_failed", { reason: reason || "unknown" });
+  },
+
+  /** Citizen modified a field that had been pre-filled by OCR. `field` is the FormState key. */
+  fieldCorrectedAfterExtract(field: string): void {
+    track("field_corrected_after_extract", { field });
+  },
 };
 
 export default analytics;

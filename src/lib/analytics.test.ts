@@ -225,6 +225,38 @@ test("circle_selected carries no properties", () => {
   expect(events[0].props).toEqual({});
 });
 
+test("bill_upload_started carries no properties", () => {
+  analytics.billUploadStarted();
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("bill_upload_started");
+  expect(events[0].props).toEqual({});
+});
+
+test("extraction_completed carries coarse non-PII properties", () => {
+  analytics.extractionCompleted("pdf", 5, "high");
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("extraction_completed");
+  expect(events[0].props).toEqual({
+    source: "pdf",
+    fields_filled: 5,
+    confidence: "high",
+  });
+});
+
+test("extraction_failed carries error reason only", () => {
+  analytics.extractionFailed("not_msedcl");
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("extraction_failed");
+  expect(events[0].props).toEqual({ reason: "not_msedcl" });
+});
+
+test("field_corrected_after_extract carries field name only", () => {
+  analytics.fieldCorrectedAfterExtract("unitsBilled");
+  expect(events).toHaveLength(1);
+  expect(events[0].event).toBe("field_corrected_after_extract");
+  expect(events[0].props).toEqual({ field: "unitsBilled" });
+});
+
 test("no event exposes PII-shaped keys", () => {
   analytics.landingViewed();
   analytics.heroPassed();
@@ -244,6 +276,10 @@ test("no event exposes PII-shaped keys", () => {
   analytics.circlePromptShown();
   analytics.circleSelected();
   analytics.letterObtained("icrs", "download", "documents");
+  analytics.billUploadStarted();
+  analytics.extractionCompleted("pdf", 4, "medium");
+  analytics.extractionFailed("file_too_large");
+  analytics.fieldCorrectedAfterExtract("amountBilled");
   const forbidden = ["name", "address", "consumerNo", "description", "narrative", "amount", "units", "email"];
   for (const { props } of events) {
     for (const key of Object.keys(props)) {
@@ -251,3 +287,4 @@ test("no event exposes PII-shaped keys", () => {
     }
   }
 });
+

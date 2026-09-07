@@ -1,13 +1,15 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { SelectField, BooleanField, DateField } from "./fields";
 import type { FormState } from "./state";
 import { useT } from "@/i18n/context";
 import { BillGuide } from "@/components/BillGuide";
+import { BillUploader } from "@/components/BillUploader";
 import { CIRCLES } from "@/engine/routing";
 import { analytics } from "@/lib/analytics";
+import type { ExtractedBill } from "@/lib/billExtract/types";
 
 // Intake screen (spec story 1). Collects the UserInput fields — rates are NOT asked (spec D12).
 // Accessibility: the whole set is a <fieldset> with a <legend>; every control has a visible label
@@ -33,6 +35,75 @@ export function IntakeStep({
 }) {
   const t = useT();
   const reachedFields = useRef(new Set<string>());
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+
+  const handleFieldChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    if (autoFilledFields.has(key)) {
+      try {
+        analytics.fieldCorrectedAfterExtract(key);
+      } catch {
+        /* analytics must never break the flow */
+      }
+      setAutoFilledFields((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+    setField(key, value);
+  };
+
+  const handleBillExtracted = (extracted: ExtractedBill) => {
+    const filled = new Set<string>();
+    if (extracted.unitsBilled !== undefined) {
+      setField("unitsBilled", String(extracted.unitsBilled));
+      filled.add("unitsBilled");
+    }
+    if (extracted.periodFrom) {
+      setField("periodFrom", extracted.periodFrom);
+      filled.add("periodFrom");
+    }
+    if (extracted.periodTo) {
+      setField("periodTo", extracted.periodTo);
+      filled.add("periodTo");
+    }
+    if (extracted.amountBilled !== undefined) {
+      setField("amountBilled", String(extracted.amountBilled));
+      filled.add("amountBilled");
+    }
+    if (extracted.readingType) {
+      setField("readingType", extracted.readingType);
+      filled.add("readingType");
+    }
+    if (extracted.category) {
+      setField("category", extracted.category);
+      filled.add("category");
+    }
+    // energyChargeBilled, circle, and priorMonthlyAvgUnits are deliberately NOT auto-filled per D45
+    setAutoFilledFields(filled);
+  };
+
+  const AutoFilledBadge = ({ field }: { field: string }) => {
+    if (!autoFilledFields.has(field)) return null;
+    return (
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          marginLeft: "0.4rem",
+          fontSize: "0.72rem",
+          fontWeight: 600,
+          color: "#15803d",
+          backgroundColor: "#dcfce7",
+          padding: "1px 6px",
+          borderRadius: "4px",
+          verticalAlign: "middle",
+        }}
+      >
+        ✓ {t("upload.autoFilledBadge")}
+      </span>
+    );
+  };
 
   const handleFocusCapture = (e: React.FocusEvent) => {
     const target = e.target as HTMLElement | null;
@@ -55,6 +126,7 @@ export function IntakeStep({
         onSubmit();
       }}
     >
+      <BillUploader onExtracted={handleBillExtracted} />
       <BillGuide />
 
       <fieldset
@@ -68,12 +140,12 @@ export function IntakeStep({
 
         <div data-field="unitsBilled">
           <Input
-            label={<><FieldNum n={1} />{t("intake.unitsLabel")}</>}
+            label={<><FieldNum n={1} />{t("intake.unitsLabel")}<AutoFilledBadge field="unitsBilled" /></>}
             type="number"
             inputMode="numeric"
             required
             value={form.unitsBilled}
-            onChange={(e) => setField("unitsBilled", e.target.value)}
+            onChange={(e) => handleFieldChange("unitsBilled", e.target.value)}
             unit="kWh"
             error={errors.unitsBilled}
           />
@@ -82,19 +154,19 @@ export function IntakeStep({
         <div className="adig-stack-sm">
           <div data-field="periodFrom">
             <DateField
-              label={<><FieldNum n={2} />{t("intake.periodFrom")}</>}
+              label={<><FieldNum n={2} />{t("intake.periodFrom")}<AutoFilledBadge field="periodFrom" /></>}
               required
               value={form.periodFrom}
-              onChange={(v) => setField("periodFrom", v)}
+              onChange={(v) => handleFieldChange("periodFrom", v)}
               error={errors.periodFrom}
             />
           </div>
           <div data-field="periodTo">
             <DateField
-              label={<><FieldNum n={2} />{t("intake.periodTo")}</>}
+              label={<><FieldNum n={2} />{t("intake.periodTo")}<AutoFilledBadge field="periodTo" /></>}
               required
               value={form.periodTo}
-              onChange={(v) => setField("periodTo", v)}
+              onChange={(v) => handleFieldChange("periodTo", v)}
               error={errors.periodTo}
             />
           </div>
@@ -102,12 +174,12 @@ export function IntakeStep({
 
         <div data-field="amountBilled">
           <Input
-            label={<><FieldNum n={3} />{t("intake.amountLabel")}</>}
+            label={<><FieldNum n={3} />{t("intake.amountLabel")}<AutoFilledBadge field="amountBilled" /></>}
             type="number"
             inputMode="numeric"
             required
             value={form.amountBilled}
-            onChange={(e) => setField("amountBilled", e.target.value)}
+            onChange={(e) => handleFieldChange("amountBilled", e.target.value)}
             unit="₹"
             placeholder={t("intake.amountPlaceholder")}
             error={errors.amountBilled}
@@ -115,6 +187,23 @@ export function IntakeStep({
         </div>
 
         <div data-field="energyChargeBilled">
+          {autoFilledFields.size > 0 && !form.energyChargeBilled && (
+            <div
+              role="alert"
+              style={{
+                backgroundColor: "#fef3c7",
+                color: "#92400e",
+                border: "1px solid #fde68a",
+                borderRadius: "6px",
+                padding: "0.55rem 0.75rem",
+                fontSize: "0.82rem",
+                marginBottom: "0.5rem",
+                lineHeight: 1.4,
+              }}
+            >
+              💡 {t("upload.energyChargeNote")}
+            </div>
+          )}
           <Input
             label={t("intake.energyChargeLabel")}
             type="number"
@@ -131,10 +220,10 @@ export function IntakeStep({
 
         <div data-field="readingType">
           <SelectField
-            label={<><FieldNum n={4} />{t("intake.readingLabel")}</>}
+            label={<><FieldNum n={4} />{t("intake.readingLabel")}<AutoFilledBadge field="readingType" /></>}
             required
             value={form.readingType}
-            onChange={(v) => setField("readingType", v)}
+            onChange={(v) => handleFieldChange("readingType", v)}
             error={errors.readingType}
             help={t("intake.readingHelp")}
             placeholder={t("common.select")}
@@ -147,10 +236,10 @@ export function IntakeStep({
 
         <div data-field="category">
           <SelectField
-            label={<><FieldNum n={5} />{t("intake.categoryLabel")}</>}
+            label={<><FieldNum n={5} />{t("intake.categoryLabel")}<AutoFilledBadge field="category" /></>}
             required
             value={form.category}
-            onChange={(v) => setField("category", v)}
+            onChange={(v) => handleFieldChange("category", v)}
             error={errors.category}
             placeholder={t("common.select")}
             options={[{ value: "LT-I-B-residential", label: t("intake.categoryResidential") }]}

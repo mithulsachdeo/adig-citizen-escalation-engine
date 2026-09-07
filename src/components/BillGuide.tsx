@@ -7,9 +7,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/context";
 import { analytics } from "@/lib/analytics";
 
+export interface BillMarker {
+  n: number;
+  key: string;
+  x: number;
+  y: number;
+}
+
 // Marker positions as % of the sample image (public/bill-sample.png). Keyed to billGuide.legend.*.
 // Numbered in FORM order (the order the citizen fills the fields), so field ③ ↔ bill ③.
-const MARKERS: { n: number; key: string; x: number; y: number }[] = [
+export const MARKERS: BillMarker[] = [
   { n: 1, key: "units", x: 41, y: 47 },
   { n: 2, key: "period", x: 64, y: 36.5 },
   { n: 3, key: "amount", x: 90, y: 16 },

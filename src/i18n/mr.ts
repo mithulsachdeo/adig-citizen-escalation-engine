@@ -98,6 +98,25 @@ export const mr: Strings = {
       circle: "तुमचे मंडळ / विभाग",
     },
   },
+  upload: {
+    title: "किंवा बिल स्कॅन करून माहिती भरा", // MR: pending native review
+    subtitle: "तुमच्या बिलाची PDF किंवा फोटो अपलोड करा. सर्व प्रक्रिया तुमच्या ब्राउझरमध्येच होते — कोणताही डेटा डिव्हाइसबाहेर जात नाही.", // MR: pending native review
+    cta: "बिल अपलोड करा (PDF किंवा फोटो)", // MR: pending native review
+    dropzone: "तुमचे बिल येथे ड्रॅग आणि ड्रॉप करा, किंवा निवडा", // MR: pending native review
+    formats: "PDF, JPG, PNG, HEIC (कमाल १० MB)", // MR: pending native review
+    downloadingOcr: "मजकूर ओळख इंजिन तयार करत आहे...", // MR: pending native review
+    recognizing: "बिलातील तपशील वाचत आहे...", // MR: pending native review
+    validating: "फाईल तपासत आहे...", // MR: pending native review
+    rendering: "दस्तऐवज स्कॅन करत आहे...", // MR: pending native review
+    successAlert: "{count} तपशील सापडले. बिल तपासण्यापूर्वी कृपया खाली दिलेली माहिती तपासा.", // MR: pending native review
+    autoFilledBadge: "आम्ही वाचले — तपासा", // MR: pending native review
+    energyChargeNote: "आम्हाला वीज आकार (Energy Charges) वाचता आला नाही — कृपया तुमच्या बिलावरून हाताने प्रविष्ट करा.", // MR: pending native review
+    errorNotMsedcl: "हे महावितरणचे (MSEDCL) वीज बिल वाटत नाही. कृपया माहिती हाताने प्रविष्ट करा.", // MR: pending native review
+    errorTooLarge: "फाईल १० MB मर्यादेपेक्षा मोठी आहे. कृपया लहान फाईल अपलोड करा.", // MR: pending native review
+    errorInvalidType: "असमर्थित फाईल प्रकार. कृपया PDF, PNG, JPG किंवा HEIC फाईल अपलोड करा.", // MR: pending native review
+    errorUnreadable: "या बिलातील मजकूर स्पष्ट वाचता आला नाही. कृपया खाली माहिती स्वतः भरा.", // MR: pending native review
+    errorGeneric: "ही फाईल स्कॅन करता आली नाही. कृपया माहिती हाताने भरा.", // MR: pending native review
+  },
   intake: {
     legend: "तुमच्या वादग्रस्त बिलातील तपशील भरा. तुम्ही टाइप केलेले काहीही आम्ही साठवत नाही.",
     unitsLabel: "बिल केलेली युनिट्स (kWh)",
