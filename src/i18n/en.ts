@@ -99,7 +99,7 @@ export const en = {
     },
   },
   upload: {
-    title: "Or scan your bill to auto-fill",
+    title: "Scan your bill to auto-fill",
     subtitle: "Upload a PDF or photo of your bill. Everything stays in your browser — zero data leaves your device.",
     cta: "Upload bill (PDF or photo)",
     dropzone: "Drag and drop your bill here, or browse",

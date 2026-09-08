@@ -99,7 +99,7 @@ export const mr: Strings = {
     },
   },
   upload: {
-    title: "किंवा बिल स्कॅन करून माहिती भरा", // MR: pending native review
+    title: "बिल स्कॅन करून माहिती भरा", // MR: pending native review
     subtitle: "तुमच्या बिलाची PDF किंवा फोटो अपलोड करा. सर्व प्रक्रिया तुमच्या ब्राउझरमध्येच होते — कोणताही डेटा डिव्हाइसबाहेर जात नाही.", // MR: pending native review
     cta: "बिल अपलोड करा (PDF किंवा फोटो)", // MR: pending native review
     dropzone: "तुमचे बिल येथे ड्रॅग आणि ड्रॉप करा, किंवा निवडा", // MR: pending native review

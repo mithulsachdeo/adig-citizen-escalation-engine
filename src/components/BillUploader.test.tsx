@@ -12,7 +12,7 @@ describe("BillUploader component", () => {
       </LanguageProvider>
     );
 
-    expect(html).toContain("Or scan your bill to auto-fill");
+    expect(html).toContain("Scan your bill to auto-fill");
     expect(html).toContain("Upload bill (PDF or photo)");
     expect(html).toContain("PDF, JPG, PNG, HEIC, WebP up to 10MB");
     expect(html).toContain('type="file"');
@@ -25,7 +25,7 @@ describe("BillUploader component", () => {
       </LanguageProvider>
     );
 
-    expect(html).toContain("किंवा बिल स्कॅन करून माहिती भरा");
+    expect(html).toContain("बिल स्कॅन करून माहिती भरा");
     expect(html).toContain("बिल अपलोड करा (PDF किंवा फोटो)");
   });
 });
