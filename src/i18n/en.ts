@@ -219,11 +219,13 @@ export const en = {
     costOvercharge: "Overcharge",
     energyBilled: "Energy charge — as billed",
     energyLawful: "Energy charge — lawful pro-rata",
+    energyEstimate: "Standard slab-rate estimate for your units",
     verifyScopeNote:
       "This checks only the energy-charge portion of your bill — not fixed charges, FAC, duty or tax.",
-    // {tableLabel} interpolated.
     verifyConfirm:
-      "We re-priced your units against the {tableLabel} slabs and got the same lawful energy charge your DISCOM billed — there's no telescopic-slab overcharge to challenge.",
+      "Your billed energy charge is at or below our standard-tariff estimate for these units, so there's no slab-jump overcharge to challenge.",
+    verifyEstimateNote:
+      "This is an estimate at MERC standard slab rates for your units. Small differences from your actual bill are normal — your bill also includes FAC, other adjustments and rounding that this check leaves out.",
     // The standard estimate caveat — mirrors ESTIMATE_CAVEAT in calculate.ts.
     estimateCaveat:
       "Estimated on the energy-charge component only, per the standard monthly pro-rata rule (MERC Supply Code 2021, Regulation 16.1.1). Fixed charges, duty and taxes are not included.",

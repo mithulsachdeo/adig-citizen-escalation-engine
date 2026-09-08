@@ -49,14 +49,22 @@ describe("ResultsStep calculation display & verification gating (D46)", () => {
       "This checks only the energy-charge portion of your bill — not fixed charges, FAC, duty or tax."
     );
 
-    // Billed and lawful rows are shown
+    // Billed and estimate rows are shown (uses energyEstimate, NOT energyLawful)
     expect(html).toContain("Energy charge — as billed");
-    expect(html).toContain("Energy charge — lawful pro-rata");
+    expect(html).toContain("Standard slab-rate estimate for your units");
+    expect(html).not.toContain("Energy charge — lawful pro-rata");
 
-    // Positive confirmation message is shown citing the tariff table
+    // Estimate disclaimer caption is rendered
     expect(html).toContain(
-      `We re-priced your units against the ${result.calculation!.tableLabel} slabs and got the same lawful energy charge your DISCOM billed`
+      "This is an estimate at MERC standard slab rates for your units. Small differences from your actual bill are normal"
     );
+
+    // Positive confirmation message is honest and estimate-framed, without "same/identical" claim
+    expect(html).toContain(
+      "Your billed energy charge is at or below our standard-tariff estimate for these units, so there&#x27;s no slab-jump overcharge to challenge."
+    );
+    expect(html).not.toContain("got the same");
+    expect(html).not.toContain("identical");
 
     // Slab working toggle is available
     expect(html).toContain("See the full slab-by-slab working");
@@ -161,11 +169,13 @@ describe("ResultsStep calculation display & verification gating (D46)", () => {
     );
 
     // Confirmation sentence is strictly hidden (honesty guard)
+    expect(html).not.toContain("Your billed energy charge is at or below");
     expect(html).not.toContain("We re-priced your units against the");
 
-    // Billed and lawful rows and working toggle remain visible
+    // Billed and estimate rows and working toggle remain visible
     expect(html).toContain("Energy charge — as billed");
-    expect(html).toContain("Energy charge — lawful pro-rata");
+    expect(html).toContain("Standard slab-rate estimate for your units");
+    expect(html).not.toContain("Energy charge — lawful pro-rata");
     expect(html).toContain("See the full slab-by-slab working");
     expect(html).not.toContain("Likely overcharge");
   });
@@ -201,6 +211,12 @@ describe("ResultsStep calculation display & verification gating (D46)", () => {
     expect(html).toContain("See the full slab-by-slab working");
     expect(html).toContain("Energy charge — as billed");
     expect(html).toContain("Energy charge — lawful pro-rata");
+
+    // Regression guard: actionable path must NOT use legitimate-specific estimate label or disclaimer
+    expect(html).not.toContain("Standard slab-rate estimate for your units");
+    expect(html).not.toContain(
+      "Small differences from your actual bill are normal"
+    );
 
     // Verification scope note is for legitimate, not actionable
     expect(html).not.toContain(

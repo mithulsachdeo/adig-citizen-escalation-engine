@@ -274,16 +274,16 @@ export function ResultsStep({
               </Alert>
             ) : (
               <p style={{ font: "var(--text-body)", color: "var(--ink-soft)", margin: 0 }}>
-                {t("results.verifyConfirm", { tableLabel: calculation.tableLabel })}
+                {t("results.verifyConfirm")}
               </p>
             )}
 
             <CostBreakdown
               items={[
                 { label: t("results.energyBilled"), amount: Math.round(calculation.actualEnergyCharge) },
-                { label: t("results.energyLawful"), amount: Math.round(calculation.lawfulEnergyCharge) },
+                { label: t("results.energyEstimate"), amount: Math.round(calculation.lawfulEnergyCharge) },
               ]}
-              caption={lang === "mr" ? t("results.estimateCaveat") : calculation.estimateCaveat}
+              caption={t("results.verifyEstimateNote")}
             />
 
             {showWorkingToggle && (
