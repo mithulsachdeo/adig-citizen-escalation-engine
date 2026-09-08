@@ -121,6 +121,7 @@ export const en = {
     errorGeneric: "Unable to scan this file. Please fill out the form manually.",
   },
   intake: {
+    orEnterManually: "Or enter your bill details manually",
     legend: "Enter the details from your disputed bill. We store nothing you type.",
     unitsLabel: "Units billed (kWh)",
     periodFrom: "Billing period — from",

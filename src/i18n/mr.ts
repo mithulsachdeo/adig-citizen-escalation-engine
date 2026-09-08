@@ -121,6 +121,7 @@ export const mr: Strings = {
     errorGeneric: "ही फाईल स्कॅन करता आली नाही. कृपया माहिती हाताने भरा.", // MR: pending native review
   },
   intake: {
+    orEnterManually: "किंवा तुमचे बिलाचे तपशील स्वतः भरा", // MR: pending native review
     legend: "तुमच्या वादग्रस्त बिलातील तपशील भरा. तुम्ही टाइप केलेले काहीही आम्ही साठवत नाही.",
     unitsLabel: "बिल केलेली युनिट्स (kWh)",
     periodFrom: "बिल कालावधी — पासून",

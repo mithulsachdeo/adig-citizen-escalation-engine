@@ -158,6 +158,44 @@ export function IntakeStep({
           </button>
         </div>
       )}
+
+      <div
+        data-testid="intake-divider"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-3)",
+          margin: "var(--space-4) 0",
+          width: "100%",
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            flex: 1,
+            height: "1px",
+            background: "var(--line)",
+          }}
+        />
+        <span
+          style={{
+            font: "var(--text-small)",
+            color: "var(--ink-faint)",
+            textAlign: "center",
+          }}
+        >
+          {t("intake.orEnterManually")}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            flex: 1,
+            height: "1px",
+            background: "var(--line)",
+          }}
+        />
+      </div>
+
       <BillGuide />
 
       <fieldset
