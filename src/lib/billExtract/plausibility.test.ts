@@ -9,22 +9,31 @@ import {
 
 describe("Plausibility Gating", () => {
   describe("validateUnits", () => {
-    it("accepts plausible units within reading difference calculation", () => {
-      // current=21375, previous=21208 -> diff = 167
-      const valid = validateUnits(167, 21375, 21208, 1);
-      expect(valid).toBe(167);
+    it("accepts plausible units within reading difference calculation for image", () => {
+      // current=32185, previous=32028 -> diff = 157
+      const valid = validateUnits(157, 32185, 32028, 1, "image");
+      expect(valid).toBe(157);
     });
 
-    it("rejects currentReading mistaken as unitsBilled (e.g. 21375 instead of 167)", () => {
-      // OCR mistakenly picks the current meter reading 21375 as units
-      const rejected = validateUnits(21375, 21375, 21208, 1);
-      expect(rejected).toBeUndefined();
+    it("rejects image-source units when readings are absent or incomplete", () => {
+      // Stray number on photo without meter reading corroboration must be rejected
+      expect(validateUnits(157, undefined, undefined, 1, "image")).toBeUndefined();
+      expect(validateUnits(157, 32185, undefined, 1, "image")).toBeUndefined();
     });
 
-    it("accepts units when readings are absent if within plausible range", () => {
-      expect(validateUnits(350)).toBe(350);
-      expect(validateUnits(50)).toBe(50);
-      expect(validateUnits(15000)).toBe(15000);
+    it("rejects image-source units when readings math does not corroborate", () => {
+      // current=32185, previous=32028 -> diff = 157, but units=2024 (year stray number)
+      expect(validateUnits(2024, 32185, 32028, 1, "image")).toBeUndefined();
+    });
+
+    it("accepts PDF positional units when readings are absent if within plausible range", () => {
+      expect(validateUnits(350, undefined, undefined, 1, "pdf")).toBe(350);
+      expect(validateUnits(50, undefined, undefined, 1, "pdf")).toBe(50);
+      expect(validateUnits(15000, undefined, undefined, 1, "pdf")).toBe(15000);
+    });
+
+    it("rejects PDF units when readings are present and mismatch", () => {
+      expect(validateUnits(21375, 21375, 21208, 1, "pdf")).toBeUndefined();
     });
 
     it("rejects non-positive or astronomical units", () => {
@@ -116,6 +125,23 @@ describe("Plausibility Gating", () => {
       expect(gated.periodTo).toBe("2026-08-22");
       expect(gated.energyChargeBilled).toBe(1099.08);
       expect(gated.energyChargeVerifyRequired).toBe(true);
+    });
+
+    it("gating rejects image units if readings are absent, but accepts if corroborated", () => {
+      const withoutReadings = applyPlausibilityGating({
+        unitsBilled: 157,
+        source: "image",
+      });
+      expect(withoutReadings.unitsBilled).toBeUndefined();
+
+      const withReadings = applyPlausibilityGating({
+        unitsBilled: 157,
+        currentReading: 32185,
+        previousReading: 32028,
+        multiplier: 1.0,
+        source: "image",
+      });
+      expect(withReadings.unitsBilled).toBe(157);
     });
   });
 });

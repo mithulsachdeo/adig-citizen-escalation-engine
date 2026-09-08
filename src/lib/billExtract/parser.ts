@@ -14,7 +14,10 @@ export function normalizeDevanagariNumerals(text: string): string {
  * Normalizes text: trims, unifies Devanagari numerals, and cleans double spaces.
  */
 export function cleanText(text: string): string {
-  return normalizeDevanagariNumerals(text).replace(/\s+/g, " ").trim();
+  return normalizeDevanagariNumerals(text)
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -55,14 +58,18 @@ export function parseIndianDate(dateStr: string): string | null {
 }
 
 /**
- * Extract clean numeric value from text, stripping currency symbols and commas.
+ * Extract clean numeric value from text, stripping currency symbols, commas, dates, and pincodes.
  */
 function extractNumber(text: string): number | null {
-  const cleaned = cleanText(text)
-    .replace(/(?:₹|Rs\.?|INR)/gi, "")
+  // Strip dates first so date components (e.g. day '26' from '26-08-2024') are never extracted as numbers
+  const withoutDates = text.replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g, " ");
+  // Strip 6-digit pin codes (Maharashtra pin codes 4xxxxx)
+  const withoutPincodes = withoutDates.replace(/\b[1-9]\d{5}\b/g, " ");
+  const cleaned = cleanText(withoutPincodes)
+    .replace(/(?:₹|Rs\.?|INR|Re\.?)/gi, "")
     .replace(/,/g, "")
     .trim();
-  const match = cleaned.match(/-?\d+(?:\.\d+)?/);
+  const match = cleaned.match(/\b\d+(?:\.\d+)?\b/);
   if (!match) return null;
   const num = parseFloat(match[0]);
   return Number.isFinite(num) ? num : null;
@@ -104,7 +111,7 @@ export function parseBillOcr(ocr: OcrResult, source: "pdf" | "image" = "image"):
   }
 
   // --- 2. Category ---
-  const residentialRegex = /(LT[-\s]*I|LT[-\s]*1|residential|घरगुती|निवासी)/i;
+  const residentialRegex = /(?:LT[-\s]*I\b|LT[-\s]*1\b|residential|\bRes\b|घरगुती|निवासी)/i;
   if (residentialRegex.test(normalizedRawText)) {
     category = "LT-I-B-residential";
   }
@@ -184,20 +191,65 @@ export function parseBillOcr(ocr: OcrResult, source: "pdf" | "image" = "image"):
   }
 
   // --- 4. Amount Billed ---
-  // Look for primary amount patterns (e.g. देयक रक्कम, रक्कम रु, bill amount)
-  const amountLabelRegex = /(देयक\s*रक्कम|देय\s*रक्कम|रक्कम\s*रु|एकूण\s*देयक|bill\s*amount|total\s*bill|amount\s*payable|net\s*amount)/i;
-  const amountMatch = findValueNearLabel(amountLabelRegex, (t) => {
-    const num = extractNumber(t);
-    return num !== null && num > 0 ? Math.round(num * 100) / 100 : null;
-  });
-  if (amountMatch !== null && typeof amountMatch.value === "number") {
-    amountBilled = amountMatch.value;
+  // Prefer primary bill amount (देयक रक्कम / the amount tied to the bill date),
+  // not early prompt payment (तत्पर देयक / तारखे पर्यंत भरल्यास / सूट)
+  // or late payment (नंतरची रक्कम / मुदतीनंतर).
+  const isPrompt = /(?:तत्पर|सूट|सवलत|तारखे\s*पर्यंत\s*भरल्यास|if\s*paid\s*by)/i;
+  const isLate = /(?:नंतरची|मुदतीनंतर|(?:या\s*)?तारखे\s*नंतर)/i;
+  const primaryAmountRegex = /(?:देयक\s*रक्?क?म|देय\s*रक्?क?म|रक्?क?म\s*रु|एकूण\s*देयक|bill\s*amount|total\s*bill|amount\s*payable|net\s*amount)/i;
+
+  // Pass 1: Look for due-date / payment stub amount e.g. "अंतिम तारीख ... Rs. 1670.00"
+  for (const line of normalizedLines) {
+    if (isPrompt.test(line.cleanText)) continue;
+    // Take portion before "या तारखे नंतर" / "मुदतीनंतर"
+    const beforeLate = line.cleanText.split(isLate)[0];
+    if (/(?:अंतिम|देय)\s*(?:तारीख|दिनांक)/i.test(beforeLate)) {
+      const m = beforeLate.match(/(?:Rs\.?|Re\.?|₹|रु\.?)\s*([\d,]+(?:\.\d{1,2})?)/i);
+      if (m) {
+        const val = parseFloat(m[1].replace(/,/g, ""));
+        if (val > 0 && val < 100000) {
+          amountBilled = Math.round(val * 100) / 100;
+          break;
+        }
+      }
+    }
   }
 
-  // Fallback: search for "Rs. NNNN.NN" in bill summary lines
+  // Pass 2: Search for primary label that is NOT a prompt/late payment line
+  if (amountBilled === undefined) {
+    for (let i = 0; i < normalizedLines.length; i++) {
+      const line = normalizedLines[i];
+      if (primaryAmountRegex.test(line.cleanText) && !isPrompt.test(line.cleanText) && !isLate.test(line.cleanText)) {
+        const parts = line.cleanText.split(primaryAmountRegex);
+        if (parts.length > 1) {
+          const remainder = parts.slice(1).join(" ");
+          const num = extractNumber(remainder);
+          if (num !== null && num > 0 && num < 100000) {
+            amountBilled = Math.round(num * 100) / 100;
+            break;
+          }
+        }
+
+        for (let j = i + 1; j <= Math.min(i + 2, normalizedLines.length - 1); j++) {
+          const nextLine = normalizedLines[j];
+          if (!isPrompt.test(nextLine.cleanText) && !isLate.test(nextLine.cleanText)) {
+            const num = extractNumber(nextLine.cleanText);
+            if (num !== null && num > 0 && num < 100000) {
+              amountBilled = Math.round(num * 100) / 100;
+              break;
+            }
+          }
+        }
+        if (amountBilled !== undefined) break;
+      }
+    }
+  }
+
+  // Pass 3: Fallback search for "Rs./Re. NNNN.NN" on lines that are NOT prompt or late payment lines
   if (amountBilled === undefined) {
     for (const line of normalizedLines) {
-      const m = line.cleanText.match(/Rs\.?\s*([\d,]+(?:\.\d{2})?)/i);
+      if (isPrompt.test(line.cleanText) || isLate.test(line.cleanText)) continue;
+      const m = line.cleanText.match(/(?:Rs\.?|Re\.?|₹)\s*([\d,]+(?:\.\d{2})?)/i);
       if (m) {
         const n = extractNumber(m[1]);
         if (n !== null && n > 0 && n < 100000) {
@@ -208,9 +260,39 @@ export function parseBillOcr(ocr: OcrResult, source: "pdf" | "image" = "image"):
     }
   }
 
+  // Pass 4: Header amount e.g. "3830.00" near consumer address in top 15 lines
+  if (amountBilled === undefined) {
+    for (let i = 0; i < Math.min(15, normalizedLines.length); i++) {
+      const line = normalizedLines[i];
+      if (isPrompt.test(line.cleanText) || isLate.test(line.cleanText)) continue;
+      const candidateText = line.cleanText
+        .replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g, " ")
+        .replace(/\b[1-9]\d{5}\b/g, " ");
+      const m = candidateText.match(/\b(\d{2,5}\.\d{2})\b/);
+      if (m) {
+        const val = parseFloat(m[1]);
+        if (val >= 50 && val < 100000) {
+          amountBilled = val;
+          break;
+        }
+      }
+    }
+  }
+
+  // Pass 5: Last resort - any amount label if earlier passes didn't find anything
+  if (amountBilled === undefined) {
+    const amountMatch = findValueNearLabel(primaryAmountRegex, (t) => {
+      const num = extractNumber(t);
+      return num !== null && num > 0 ? Math.round(num * 100) / 100 : null;
+    });
+    if (amountMatch !== null && typeof amountMatch.value === "number") {
+      amountBilled = amountMatch.value;
+    }
+  }
+
   // --- 5. Billing Period (periodFrom / periodTo) ---
-  const fromLabelRegex = /(मागील\s*रिडिंग\s*दिनांक|मागील\s*दिनांक|prev(?:ious)?\s*(?:reading)?\s*date|period\s*from|from\s*date)/i;
-  const toLabelRegex = /(चालु\s*रिडिंग\s*दिनांक|चालु\s*दिनांक|current\s*(?:reading)?\s*date|period\s*to|to\s*date)/i;
+  const fromLabelRegex = /(?:मागील\s*(?:रि|री)डिंग\s*दिनां?क?|मागील\s*दिनां?क?|मागील\s*\[?ग\s*दि[-.]?|prev(?:ious)?\s*(?:reading)?\s*date|period\s*from|from\s*date)/i;
+  const toLabelRegex = /(?:चालु\s*(?:रि|री)डिंग\s*दिनां?क?|चालु\s*दिनां?क?|current\s*(?:reading)?\s*date|period\s*to|to\s*date)/i;
 
   const fromMatch = findValueNearLabel(fromLabelRegex, (t) => parseIndianDate(t));
   const toMatch = findValueNearLabel(toLabelRegex, (t) => parseIndianDate(t));

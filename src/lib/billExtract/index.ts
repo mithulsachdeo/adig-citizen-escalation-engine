@@ -17,11 +17,46 @@ export type {
 } from "./types";
 
 /**
- * High-level entry point for bill extraction:
+ * Extracts bill data from an environment-agnostic PDF buffer using high-accuracy text layer.
+ * Works in both browser and Node.js.
+ */
+export async function extractFromPdfBuffer(
+  buffer: Uint8Array
+): Promise<{ empty: boolean; extracted?: ExtractedBill }> {
+  return extractPdfTextLayer(buffer);
+}
+
+/**
+ * Extracts bill data from an environment-agnostic canvas (HTMLCanvasElement or Node Canvas).
+ * Pipeline: preprocessCanvas (upscale + Otsu) -> runOcr (Tesseract v7) -> parseBillOcr -> applyPlausibilityGating.
+ * Works in both browser and Node.js.
+ */
+export async function extractFromCanvas(
+  canvas: any,
+  source: "pdf" | "image" = "image",
+  onProgress?: (progress: ExtractionProgress) => void
+): Promise<ExtractedBill> {
+  const preprocessedCanvas = preprocessCanvas(canvas);
+
+  let ocrResult;
+  try {
+    ocrResult = await runOcr(preprocessedCanvas, onProgress);
+  } catch {
+    throw new Error("ocr_failed");
+  }
+
+  if (!ocrResult.text || ocrResult.text.trim().length === 0) {
+    throw new Error("empty_text");
+  }
+
+  return parseBillOcr(ocrResult, source);
+}
+
+/**
+ * High-level browser entry point for bill extraction:
  * 1. Validates magic bytes & file size (10MB limit, zero upload).
  * 2. If PDF: attempts text-layer positional extraction first (near-100% accuracy on MSEDCL digital PDFs).
- * 3. If text layer is empty (scanned PDF) or image: pre-processes canvas (grayscale, 2000px+, Otsu binarization),
- *    executes Tesseract v7 with blocks:true, and extracts positionally with plausibility gating.
+ * 3. If text layer is empty (scanned PDF) or image: renders canvas and runs extractFromCanvas.
  */
 export async function extractBill(
   file: File,
@@ -38,7 +73,8 @@ export async function extractBill(
   if (validation.fileType === "pdf") {
     onProgress?.({ percent: 20, stage: "rendering" });
     try {
-      const pdfTextResult = await extractPdfTextLayer(file);
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      const pdfTextResult = await extractFromPdfBuffer(buffer);
       if (!pdfTextResult.empty && pdfTextResult.extracted) {
         onProgress?.({ percent: 100, stage: "complete" });
         return pdfTextResult.extracted;
@@ -60,25 +96,10 @@ export async function extractBill(
     throw new Error("render_failed");
   }
 
-  // Step 4: Preprocess canvas in-memory
-  const preprocessedCanvas = preprocessCanvas(canvas);
-
-  // Step 5: Run OCR
-  let ocrResult;
-  try {
-    ocrResult = await runOcr(preprocessedCanvas, onProgress);
-  } catch {
-    throw new Error("ocr_failed");
-  }
-
-  if (!ocrResult.text || ocrResult.text.trim().length === 0) {
-    throw new Error("empty_text");
-  }
-
-  // Step 6: Parse & extract fields with plausibility gating
+  // Step 4: Extract from canvas
   onProgress?.({ percent: 95, stage: "parsing" });
   const source = validation.fileType === "pdf" ? "pdf" : "image";
-  const extracted = parseBillOcr(ocrResult, source);
+  const extracted = await extractFromCanvas(canvas, source, onProgress);
 
   onProgress?.({ percent: 100, stage: "complete" });
   return extracted;

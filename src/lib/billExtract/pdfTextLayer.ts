@@ -33,8 +33,11 @@ function parseNumber(s: string): number | null {
  * Using item bounding box positions yields near-100% extraction accuracy on digital bills.
  */
 export async function extractPdfTextLayer(file: File | Uint8Array): Promise<PdfTextLayerResult> {
-  const pdfjs = await import("pdfjs-dist");
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+  const pdfjs =
+    typeof window === "undefined"
+      ? await import("pdfjs-dist/legacy/build/pdf.mjs")
+      : await import("pdfjs-dist");
+  if (!pdfjs.GlobalWorkerOptions.workerSrc && typeof window !== "undefined") {
     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
   }
 

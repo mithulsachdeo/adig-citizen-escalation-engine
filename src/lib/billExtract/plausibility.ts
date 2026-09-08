@@ -17,28 +17,45 @@ export interface RawExtractedFields {
 
 /**
  * Validates unitsBilled.
- * If current and previous meter readings are both provided:
- * requires units ≈ (current - previous) * multiplier (tolerance of ±1 unit for rounding).
- * If it violates this consistency check (e.g. naive extractor assigned 21375 instead of 167),
- * unitsBilled is rejected and left undefined.
+ * - For images: requires BOTH current and previous meter readings to be present, and
+ *   enforces units ≈ (current - previous) * multiplier. If readings are missing or don't match,
+ *   unitsBilled is rejected and left blank to avoid stray numbers leaking on photos.
+ * - For PDFs: uses positional trust. If both readings are present, the consistency check is enforced;
+ *   if readings are missing, the positional units token is accepted if within reasonable bounds (0 < units < 100000).
  */
 export function validateUnits(
   units?: number,
   currentReading?: number,
   previousReading?: number,
-  multiplier = 1.0
+  multiplier = 1.0,
+  source: "pdf" | "image" = "pdf"
 ): number | undefined {
   if (units === undefined || !Number.isFinite(units) || units <= 0 || units >= 100000) {
     return undefined;
   }
 
-  if (
+  const hasBothReadings =
     currentReading !== undefined &&
     previousReading !== undefined &&
     Number.isFinite(currentReading) &&
     Number.isFinite(previousReading) &&
-    currentReading >= previousReading
-  ) {
+    currentReading >= previousReading;
+
+  if (source === "image") {
+    // When source === "image" and the two readings are not both present, reject unitsBilled (leave it blank).
+    // Only accept image-source units that the reading math corroborates.
+    if (!hasBothReadings) {
+      return undefined;
+    }
+    const computedUnits = (currentReading - previousReading) * (multiplier || 1.0);
+    if (Math.abs(computedUnits - units) > 1.5) {
+      return undefined;
+    }
+    return Math.round(units);
+  }
+
+  // PDF path: positional / higher trust
+  if (hasBothReadings) {
     const computedUnits = (currentReading - previousReading) * (multiplier || 1.0);
     if (Math.abs(computedUnits - units) > 1.5) {
       // Consistency check failed: current - previous != units
@@ -130,7 +147,8 @@ export function applyPlausibilityGating(raw: RawExtractedFields): ExtractedBill 
     raw.unitsBilled,
     raw.currentReading,
     raw.previousReading,
-    raw.multiplier
+    raw.multiplier,
+    raw.source
   );
 
   const amountBilled = validateAmount(raw.amountBilled);

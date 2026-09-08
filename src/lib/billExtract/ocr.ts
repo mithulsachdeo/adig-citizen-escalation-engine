@@ -2,15 +2,31 @@ import type { OcrResult, OcrLine, OcrWord, ExtractionProgress } from "./types";
 
 export type OcrProgressCallback = (progress: ExtractionProgress) => void;
 
+function createCompatibleCanvas(srcCanvas: any, w: number, h: number): any {
+  if (typeof document !== "undefined" && typeof document.createElement === "function") {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    return canvas;
+  }
+  if (srcCanvas && typeof srcCanvas.constructor === "function") {
+    try {
+      const c = new srcCanvas.constructor(w, h);
+      if (c && typeof c.getContext === "function") return c;
+    } catch {
+      // fallback
+    }
+  }
+  return null;
+}
+
 /**
  * Preprocesses a canvas before OCR to dramatically improve OCR accuracy on mobile photos and low-res scans:
  * 1. Upscales so the long edge is >= ~2000px (tesseract mar+eng performs best with character height >= 30px).
  * 2. Converts to grayscale using standard luminance weights (0.299 R + 0.587 G + 0.114 B).
  * 3. Binarizes using Otsu's global thresholding algorithm to maximize foreground/background contrast.
  */
-export function preprocessCanvas(srcCanvas: HTMLCanvasElement): HTMLCanvasElement {
-  if (typeof document === "undefined") return srcCanvas;
-
+export function preprocessCanvas(srcCanvas: HTMLCanvasElement | any): HTMLCanvasElement | any {
   const srcW = srcCanvas.width;
   const srcH = srcCanvas.height;
   if (!srcW || !srcH) return srcCanvas;
@@ -22,9 +38,8 @@ export function preprocessCanvas(srcCanvas: HTMLCanvasElement): HTMLCanvasElemen
   const dstW = Math.round(srcW * scale);
   const dstH = Math.round(srcH * scale);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = dstW;
-  canvas.height = dstH;
+  const canvas = createCompatibleCanvas(srcCanvas, dstW, dstH);
+  if (!canvas) return srcCanvas;
   const ctx = canvas.getContext("2d");
   if (!ctx) return srcCanvas;
 
@@ -92,15 +107,13 @@ export function preprocessCanvas(srcCanvas: HTMLCanvasElement): HTMLCanvasElemen
  * Crops a rectangular bounding box from a canvas.
  */
 export function cropCanvas(
-  srcCanvas: HTMLCanvasElement,
+  srcCanvas: HTMLCanvasElement | any,
   bbox: { x0: number; y0: number; x1: number; y1: number }
-): HTMLCanvasElement {
-  if (typeof document === "undefined") return srcCanvas;
+): HTMLCanvasElement | any {
   const w = Math.max(1, Math.round(bbox.x1 - bbox.x0));
   const h = Math.max(1, Math.round(bbox.y1 - bbox.y0));
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  const canvas = createCompatibleCanvas(srcCanvas, w, h);
+  if (!canvas) return srcCanvas;
   const ctx = canvas.getContext("2d");
   if (ctx) {
     ctx.drawImage(srcCanvas, bbox.x0, bbox.y0, w, h, 0, 0, w, h);
@@ -179,7 +192,7 @@ export function tesseractDataToOcrLines(data: unknown): OcrLine[] {
  * Note: `{ blocks: true }` MUST be passed in recognize options for Tesseract.js v7 to populate `data.blocks`.
  */
 export async function runOcr(
-  canvas: HTMLCanvasElement,
+  canvas: HTMLCanvasElement | any,
   onProgress?: OcrProgressCallback
 ): Promise<OcrResult> {
   const { createWorker } = await import("tesseract.js");
@@ -204,8 +217,13 @@ export async function runOcr(
   });
 
   try {
-    // Crucial bug fix for Tesseract.js v7: pass { blocks: true } as 3rd parameter
-    const ret = await worker.recognize(canvas, {}, { blocks: true });
+    // Support both browser HTMLCanvasElement and Node Canvas (with .toBuffer)
+    const imageInput =
+      typeof (canvas as any)?.toBuffer === "function"
+        ? (canvas as any).toBuffer("image/png")
+        : canvas;
+
+    const ret = await worker.recognize(imageInput, {}, { blocks: true });
     const text = ret.data.text || "";
     const lines = tesseractDataToOcrLines(ret.data);
 

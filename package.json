@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "eval": "node ./node_modules/tsx/dist/cli.mjs tools/ocr-eval/eval.ts"
   },
   "dependencies": {
     "gsap": "^3.15.0",
@@ -21,9 +22,11 @@
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
+    "tsx": "^4.23.13",
     "typescript": "5.7.3",
     "vitest": "3.0.4"
   }
