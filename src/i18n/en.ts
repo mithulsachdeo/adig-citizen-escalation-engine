@@ -113,6 +113,7 @@ export const en = {
     autoFilledBadge: "We read this — check it",
     energyChargeNote: "We couldn't read Energy Charges — please enter it manually from your bill.",
     verifyEnergyChargeNote: "We read ₹{amount} for Energy Charges from page 2 of your bill. Please verify this matches your bill's 'Energy Charges' line before checking.",
+    reuploadNotice: "Updated from your new upload — earlier auto-filled values were cleared.",
     errorNotMsedcl: "This doesn't appear to be an MSEDCL (Mahavitaran) electricity bill. Please enter details manually.",
     errorTooLarge: "File exceeds the 10MB size limit. Please upload a smaller bill file.",
     errorInvalidType: "Unsupported file format. Please upload a PDF, PNG, JPG, HEIC, or WebP image.",

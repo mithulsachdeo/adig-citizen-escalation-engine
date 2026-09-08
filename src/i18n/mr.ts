@@ -113,6 +113,7 @@ export const mr: Strings = {
     autoFilledBadge: "आम्ही वाचले — तपासा", // MR: pending native review
     energyChargeNote: "आम्हाला वीज आकार (Energy Charges) वाचता आला नाही — कृपया तुमच्या बिलावरून हाताने प्रविष्ट करा.", // MR: pending native review
     verifyEnergyChargeNote: "आम्ही बिलाच्या पान २ वरून ऊर्जा आकारासाठी ₹{amount} वाचले आहे. बिल तपासण्यापूर्वी हे तुमच्या बिलाच्या 'Energy Charges' नोंदीशी जुळत असल्याची खात्री करा.", // MR: pending native review
+    reuploadNotice: "तुमच्या नवीन अपलोडवरून माहिती अपडेट केली — पूर्वी स्वयंचलित भरलेली माहिती काढली आहे.", // MR: pending native review
     errorNotMsedcl: "हे महावितरणचे (MSEDCL) वीज बिल वाटत नाही. कृपया माहिती हाताने प्रविष्ट करा.", // MR: pending native review
     errorTooLarge: "फाईल १० MB मर्यादेपेक्षा मोठी आहे. कृपया लहान फाईल अपलोड करा.", // MR: pending native review
     errorInvalidType: "असमर्थित फाईल प्रकार. कृपया PDF, PNG, JPG, HEIC किंवा WebP फाईल अपलोड करा.", // MR: pending native review

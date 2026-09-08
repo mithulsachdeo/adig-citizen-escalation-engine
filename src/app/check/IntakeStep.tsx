@@ -10,6 +10,7 @@ import { BillUploader } from "@/components/BillUploader";
 import { CIRCLES } from "@/engine/routing";
 import { analytics } from "@/lib/analytics";
 import type { ExtractedBill } from "@/lib/billExtract/types";
+import { computeReuploadUpdates } from "./reupload";
 
 // Intake screen (spec story 1). Collects the UserInput fields — rates are NOT asked (spec D12).
 // Accessibility: the whole set is a <fieldset> with a <legend>; every control has a visible label
@@ -37,6 +38,7 @@ export function IntakeStep({
   const reachedFields = useRef(new Set<string>());
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   const [energyChargeVerifyRequired, setEnergyChargeVerifyRequired] = useState(false);
+  const [reuploadNoticeVisible, setReuploadNoticeVisible] = useState(false);
 
   const handleFieldChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     if (autoFilledFields.has(key)) {
@@ -58,42 +60,21 @@ export function IntakeStep({
   };
 
   const handleBillExtracted = (extracted: ExtractedBill) => {
-    const filled = new Set<string>();
-    if (extracted.unitsBilled !== undefined) {
-      setField("unitsBilled", String(extracted.unitsBilled));
-      filled.add("unitsBilled");
+    const { clears, sets, nextAutoFilled, energyChargeVerifyRequired: nextVerify, wasReplaced } =
+      computeReuploadUpdates(autoFilledFields, extracted);
+
+    for (const field of clears) {
+      setField(field, "");
     }
-    if (extracted.periodFrom) {
-      setField("periodFrom", extracted.periodFrom);
-      filled.add("periodFrom");
+    for (const [field, value] of sets) {
+      setField(field, value);
     }
-    if (extracted.periodTo) {
-      setField("periodTo", extracted.periodTo);
-      filled.add("periodTo");
+
+    setEnergyChargeVerifyRequired(nextVerify);
+    setAutoFilledFields(nextAutoFilled);
+    if (wasReplaced) {
+      setReuploadNoticeVisible(true);
     }
-    if (extracted.amountBilled !== undefined) {
-      setField("amountBilled", String(extracted.amountBilled));
-      filled.add("amountBilled");
-    }
-    if (extracted.readingType) {
-      setField("readingType", extracted.readingType);
-      filled.add("readingType");
-    }
-    if (extracted.category) {
-      setField("category", extracted.category);
-      filled.add("category");
-    }
-    if (extracted.energyChargeBilled !== undefined) {
-      setField("energyChargeBilled", String(extracted.energyChargeBilled));
-      filled.add("energyChargeBilled");
-      if (extracted.energyChargeVerifyRequired) {
-        setEnergyChargeVerifyRequired(true);
-      }
-    } else {
-      setEnergyChargeVerifyRequired(false);
-    }
-    // circle and priorMonthlyAvgUnits are deliberately NOT auto-filled (circle = wrong forum risk; priorMonthlyAvgUnits = chart OCR low-value)
-    setAutoFilledFields(filled);
   };
 
   const AutoFilledBadge = ({ field }: { field: string }) => {
@@ -140,6 +121,43 @@ export function IntakeStep({
       }}
     >
       <BillUploader onExtracted={handleBillExtracted} />
+      {reuploadNoticeVisible && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            backgroundColor: "#f0fdf4",
+            border: "1px solid #bbf7d0",
+            borderRadius: "6px",
+            padding: "0.5rem 0.75rem",
+            fontSize: "0.82rem",
+            color: "#166534",
+            marginBottom: "1rem",
+            lineHeight: 1.4,
+          }}
+        >
+          <span>ℹ️ {t("upload.reuploadNotice")}</span>
+          <button
+            type="button"
+            onClick={() => setReuploadNoticeVisible(false)}
+            aria-label="Dismiss notice"
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "1rem",
+              lineHeight: 1,
+              padding: "0 0.25rem",
+              color: "#166534",
+              marginLeft: "0.5rem",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <BillGuide />
 
       <fieldset
