@@ -2,7 +2,7 @@ import type { ExtractionErrorCode } from "./types";
 
 export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
-export type DetectedFileType = "pdf" | "png" | "jpeg" | "heic";
+export type DetectedFileType = "pdf" | "png" | "jpeg" | "heic" | "webp";
 
 export interface ValidationResult {
   valid: boolean;
@@ -52,9 +52,24 @@ export async function validateFile(file: File): Promise<ValidationResult> {
     return { valid: true, fileType: "png" };
   }
 
-  // JPEG: 0xFF, 0xD8, 0xFF
+  // JPEG: 0xFF, 0xD8, 0xFF (includes standard JFIF / Exif)
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return { valid: true, fileType: "jpeg" };
+  }
+
+  // WebP: RIFF....WEBP (bytes 0-3: 0x52, 0x49, 0x46, 0x46; bytes 8-11: 0x57, 0x45, 0x42, 0x50)
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return { valid: true, fileType: "webp" };
   }
 
   // HEIC / HEIF: bytes 4-7 are 'ftyp' (0x66, 0x74, 0x79, 0x70)

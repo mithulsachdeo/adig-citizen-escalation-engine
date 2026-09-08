@@ -140,7 +140,7 @@ export function BillUploader({ onExtracted }: BillUploaderProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.png,.jpg,.jpeg,.heic,image/*,application/pdf"
+        accept=".pdf,.png,.jpg,.jpeg,.heic,.webp,image/*,application/pdf"
         style={{ display: "none" }}
         onChange={onFileInputChange}
         aria-label={t("upload.cta")}
@@ -175,6 +175,9 @@ export function BillUploader({ onExtracted }: BillUploaderProps) {
             <span style={{ fontSize: "0.78rem", color: "var(--ink-faint, #64748b)" }}>
               {t("upload.formats")}
             </span>
+          </div>
+          <div style={{ fontSize: "0.75rem", color: "var(--ink-faint, #64748b)", marginTop: "0.5rem", maxWidth: "420px", marginLeft: "auto", marginRight: "auto", lineHeight: 1.35 }}>
+            💡 {t("upload.pdfPreference")}
           </div>
         </div>
       )}

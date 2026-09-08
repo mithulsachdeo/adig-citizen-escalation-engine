@@ -1,7 +1,8 @@
 import { validateFile } from "./validateFile";
 import { decodeToCanvas } from "./decodeToCanvas";
-import { runOcr } from "./ocr";
+import { runOcr, preprocessCanvas } from "./ocr";
 import { parseBillOcr } from "./parser";
+import { extractPdfTextLayer } from "./pdfTextLayer";
 import type { ExtractedBill, ExtractionProgress } from "./types";
 
 export type {
@@ -18,9 +19,9 @@ export type {
 /**
  * High-level entry point for bill extraction:
  * 1. Validates magic bytes & file size (10MB limit, zero upload).
- * 2. Decodes first page of PDF / HEIC / Image into an HTML Canvas.
- * 3. Runs Tesseract.js (mar + eng) client-side with progress reporting.
- * 4. Parses OCR tokens for MSEDCL fields with date sanity and omission rules (D45).
+ * 2. If PDF: attempts text-layer positional extraction first (near-100% accuracy on MSEDCL digital PDFs).
+ * 3. If text layer is empty (scanned PDF) or image: pre-processes canvas (grayscale, 2000px+, Otsu binarization),
+ *    executes Tesseract v7 with blocks:true, and extracts positionally with plausibility gating.
  */
 export async function extractBill(
   file: File,
@@ -33,8 +34,25 @@ export async function extractBill(
     throw new Error(validation.error || "unsupported_type");
   }
 
-  // Step 2: Render to canvas
-  onProgress?.({ percent: 15, stage: "rendering" });
+  // Step 2: If PDF, try high-accuracy text layer first
+  if (validation.fileType === "pdf") {
+    onProgress?.({ percent: 20, stage: "rendering" });
+    try {
+      const pdfTextResult = await extractPdfTextLayer(file);
+      if (!pdfTextResult.empty && pdfTextResult.extracted) {
+        onProgress?.({ percent: 100, stage: "complete" });
+        return pdfTextResult.extracted;
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "not_msedcl") {
+        throw err;
+      }
+      // Otherwise fall back to rasterize & OCR (scanned PDF)
+    }
+  }
+
+  // Step 3: Render to canvas (for images or scanned PDFs)
+  onProgress?.({ percent: 25, stage: "rendering" });
   let canvas: HTMLCanvasElement;
   try {
     canvas = await decodeToCanvas(file, validation.fileType);
@@ -42,10 +60,13 @@ export async function extractBill(
     throw new Error("render_failed");
   }
 
-  // Step 3: Run OCR
+  // Step 4: Preprocess canvas in-memory
+  const preprocessedCanvas = preprocessCanvas(canvas);
+
+  // Step 5: Run OCR
   let ocrResult;
   try {
-    ocrResult = await runOcr(canvas, onProgress);
+    ocrResult = await runOcr(preprocessedCanvas, onProgress);
   } catch {
     throw new Error("ocr_failed");
   }
@@ -54,7 +75,7 @@ export async function extractBill(
     throw new Error("empty_text");
   }
 
-  // Step 4: Parse & extract fields
+  // Step 6: Parse & extract fields with plausibility gating
   onProgress?.({ percent: 95, stage: "parsing" });
   const source = validation.fileType === "pdf" ? "pdf" : "image";
   const extracted = parseBillOcr(ocrResult, source);

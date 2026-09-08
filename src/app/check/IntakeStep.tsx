@@ -36,6 +36,7 @@ export function IntakeStep({
   const t = useT();
   const reachedFields = useRef(new Set<string>());
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+  const [energyChargeVerifyRequired, setEnergyChargeVerifyRequired] = useState(false);
 
   const handleFieldChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     if (autoFilledFields.has(key)) {
@@ -49,6 +50,9 @@ export function IntakeStep({
         next.delete(key);
         return next;
       });
+    }
+    if (key === "energyChargeBilled") {
+      setEnergyChargeVerifyRequired(false);
     }
     setField(key, value);
   };
@@ -79,7 +83,16 @@ export function IntakeStep({
       setField("category", extracted.category);
       filled.add("category");
     }
-    // energyChargeBilled, circle, and priorMonthlyAvgUnits are deliberately NOT auto-filled per D45
+    if (extracted.energyChargeBilled !== undefined) {
+      setField("energyChargeBilled", String(extracted.energyChargeBilled));
+      filled.add("energyChargeBilled");
+      if (extracted.energyChargeVerifyRequired) {
+        setEnergyChargeVerifyRequired(true);
+      }
+    } else {
+      setEnergyChargeVerifyRequired(false);
+    }
+    // circle and priorMonthlyAvgUnits are deliberately NOT auto-filled (circle = wrong forum risk; priorMonthlyAvgUnits = chart OCR low-value)
     setAutoFilledFields(filled);
   };
 
@@ -187,6 +200,23 @@ export function IntakeStep({
         </div>
 
         <div data-field="energyChargeBilled">
+          {autoFilledFields.size > 0 && form.energyChargeBilled && energyChargeVerifyRequired && (
+            <div
+              role="alert"
+              style={{
+                backgroundColor: "#eff6ff",
+                color: "#1e40af",
+                border: "1px solid #bfdbfe",
+                borderRadius: "6px",
+                padding: "0.55rem 0.75rem",
+                fontSize: "0.82rem",
+                marginBottom: "0.5rem",
+                lineHeight: 1.4,
+              }}
+            >
+              ℹ️ {t("upload.verifyEnergyChargeNote").replace("{amount}", form.energyChargeBilled)}
+            </div>
+          )}
           {autoFilledFields.size > 0 && !form.energyChargeBilled && (
             <div
               role="alert"
@@ -205,12 +235,12 @@ export function IntakeStep({
             </div>
           )}
           <Input
-            label={t("intake.energyChargeLabel")}
+            label={<>{t("intake.energyChargeLabel")}<AutoFilledBadge field="energyChargeBilled" /></>}
             type="number"
             inputMode="numeric"
             required
             value={form.energyChargeBilled}
-            onChange={(e) => setField("energyChargeBilled", e.target.value)}
+            onChange={(e) => handleFieldChange("energyChargeBilled", e.target.value)}
             unit="₹"
             placeholder={t("intake.energyChargePlaceholder")}
             help={t("intake.energyChargeHelp")}

@@ -10,6 +10,10 @@ export interface ExtractedBill {
   amountBilled?: number;
   readingType?: ReadingType;
   category?: string;
+  energyChargeBilled?: number;
+  energyChargeVerifyRequired?: boolean;
+  currentReading?: number;
+  previousReading?: number;
   confidence: "high" | "medium" | "low";
   fieldsFilled: number;
   source: "pdf" | "image";

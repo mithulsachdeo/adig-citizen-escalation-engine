@@ -14,7 +14,7 @@ describe("BillUploader component", () => {
 
     expect(html).toContain("Or scan your bill to auto-fill");
     expect(html).toContain("Upload bill (PDF or photo)");
-    expect(html).toContain("PDF, JPG, PNG, HEIC up to 10MB");
+    expect(html).toContain("PDF, JPG, PNG, HEIC, WebP up to 10MB");
     expect(html).toContain('type="file"');
   });
 
